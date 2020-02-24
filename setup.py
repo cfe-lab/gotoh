@@ -1,9 +1,7 @@
 from setuptools import setup, Extension
 
 gotoh = Extension(
-    "gotoh",
-    sources=["alignment.cpp"],
-    define_macros=[("__PYTHON__", None)],
+    "gotoh", sources=["alignment.cpp"], define_macros=[("__PYTHON__", None)],
 )
 
 setup(

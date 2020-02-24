@@ -3,3 +3,6 @@ Makefile
 *.h
 *.o
 *.so
+
+dist/
+gotoh.egg-info/

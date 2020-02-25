@@ -10,4 +10,4 @@ setup(
     description="Wrapper for Conan's alignment.cpp code",
     ext_modules=[gotoh],
     zip_safe=False,
-)
+    extras_require={'dev': ['pytest']})

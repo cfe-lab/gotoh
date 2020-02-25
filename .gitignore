@@ -4,5 +4,8 @@ Makefile
 *.o
 *.so
 
+/.idea
+/venv_gotoh
+
 dist/
 gotoh.egg-info/

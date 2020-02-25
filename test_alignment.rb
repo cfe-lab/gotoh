@@ -57,19 +57,6 @@ class TestAlignment < Minitest::Test
     assert_equal expected_aseq, aligned_seq
   end
 
-  def test_align_it_aa_match
-    ref1 = 'R'
-    seq1 = 'R'
-    ref2 = 'D'
-    seq2 = 'D'
-
-    aref1, aseq1 = align_it_aa(ref1, seq1, *DEFAULT_PENALTIES)
-    aref2, aseq2 = align_it_aa(ref2, seq2, *DEFAULT_PENALTIES)
-
-    assert_equal [ref1, seq1], [aref1, aseq1]
-    assert_equal [ref2, seq2], [aref2, aseq2]
-  end
-
   def test_align_it_aa_mismatch
     ref = 'RRRRRRR'
     seq = 'RRRDRRR'

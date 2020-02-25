@@ -32,7 +32,7 @@ class TestAlignment < Minitest::Test
         'TGGAAGGGCTAATTCACTGAGACTCCCAACGAAGACAAGATATCCTTGATCTGTGGATCTACCACACA'
     # insertion:           ^^^^^^
     expected_aref = \
-        '------TGGAAGGGCTAATTCACTCCCAACGAAGACAAGATATCCTTGATCTGTGGATCTACCACACA'
+        'TGGAAGGGCTAATTCACT------CCCAACGAAGACAAGATATCCTTGATCTGTGGATCTACCACACA'
     gap_open_penalty = 15
     gap_extend_penalty = 5
 
@@ -48,7 +48,7 @@ class TestAlignment < Minitest::Test
     seq = \
         'TGGAAGGGCTAATTCACTGAAGACAAGATATCCTTGATCTGTGGATCTACCACACA'
     expected_aseq = \
-        '------TGGAAGGGCTAATTCACTGAAGACAAGATATCCTTGATCTGTGGATCTACCACACA'
+        'TGGAAGGGCTAATTCACT------GAAGACAAGATATCCTTGATCTGTGGATCTACCACACA'
     gap_open_penalty = 15
     gap_extend_penalty = 5
 

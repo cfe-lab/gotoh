@@ -33,8 +33,8 @@ class TestAlignment < Minitest::Test
     # insertion:           ^^^^^^
     expected_aref = \
         'TGGAAGGGCTAATTCACT------CCCAACGAAGACAAGATATCCTTGATCTGTGGATCTACCACACA'
-    gap_open_penalty = 15
-    gap_extend_penalty = 5
+    gap_open_penalty = 3
+    gap_extend_penalty = 1
 
     aligned_ref, aligned_seq = align_it(ref, seq, gap_open_penalty, gap_extend_penalty)
     assert_equal expected_aref, aligned_ref
@@ -49,8 +49,8 @@ class TestAlignment < Minitest::Test
         'TGGAAGGGCTAATTCACTGAAGACAAGATATCCTTGATCTGTGGATCTACCACACA'
     expected_aseq = \
         'TGGAAGGGCTAATTCACT------GAAGACAAGATATCCTTGATCTGTGGATCTACCACACA'
-    gap_open_penalty = 15
-    gap_extend_penalty = 5
+    gap_open_penalty = 3
+    gap_extend_penalty = 1
 
     aligned_ref, aligned_seq = align_it(ref, seq, gap_open_penalty, gap_extend_penalty)
     assert_equal ref, aligned_ref

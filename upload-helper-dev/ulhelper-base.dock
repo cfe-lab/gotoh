@@ -1,0 +1,92 @@
+# basic docker file for pyreports
+# install instant client and sqlplus on ubuntu20.04
+
+FROM ubuntu:20.04
+
+LABEL maintainer=wscott@bccfe.ca
+
+# the less, make, tcsh and vim are purely for convenience
+# we use rlwrap for command line editing in sqlplus
+# we need libaio1 libaio-dev for the instantclient
+# we use supervisor for running crond and the webserver in the container
+RUN apt-get -y update && apt-get -y upgrade &&\
+apt-get -y install wget less unzip tcsh make rlwrap python3-pip libaio1 libaio-dev
+
+
+# -- oracle instant client -- these are previosuly downloaded zip files
+#COPY build-deps /build-deps
+#RUN unzip /build-deps/instantclient-basic*   -d /opt/oracle
+#RUN unzip /build-deps/instantclient-sqlplus* -d /opt/oracle
+
+#ENV PATH=/opt/oracle/instantclient_19_8:$PATH
+#ENV LD_LIBRARY_PATH=/opt/oracle/instantclient_19_8:$LD_LIBRARY_PATH
+#ENV ORACLE_HOME=/opt/oracle/instantclient_19_8
+
+# add any other build dependencies here...
+
+#RUN rm -rf /build-deps
+
+# need this for GUI programs like tkinter to work within docker...
+ENV DISPLAY :0
+
+# set the timezone for Vancouver, so that datetime.now() returns our
+# local time, not UTC.
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install tzdata
+ENV TZ=America/Vancouver
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Install the MS Core Fonts to get access to the Trebuchet MS font.
+# We follow the instructions from this Stack Overflow answer to accept
+# the EULA automatically:
+# https://askubuntu.com/a/25614
+RUN echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
+RUN apt -y install ttf-mscorefonts-installer
+
+# we define these users here so that we can launch an image as a local user
+# see the Makefile in the top directory...
+RUN useradd -rm -s /bin/tcsh -u 1000 dockuser00 &&\
+    useradd -rm -s /bin/tcsh -u 1001 dockuser01 &&\
+    useradd -rm -s /bin/tcsh -u 1002 dockuser02 &&\
+    useradd -rm -s /bin/tcsh -u 1003 dockuser03 &&\
+    useradd -rm -s /bin/tcsh -u 1004 dockuser04
+
+# seem to need the update here...
+# RUN apt-get update && apt-get -y install python3-pip
+
+# copy source code and install python dependencies
+COPY ulhelper /ulhelper
+# COPY ulhelper/requirements.txt /ulhelper
+RUN pip3 install --no-cache-dir -r /ulhelper/requirements.txt
+# COPY projects  /projects
+COPY webserver /webserver
+
+ENV PYTHONPATH=/ulhelper:/:$PYTHONPATH
+ENV MYPYPATH=/ulhelper:/:$PYTHONPATH
+
+# Copy some configuration files into the image
+COPY config /config
+# need this for oracle to find the tnsnames.ora
+ENV TNS_ADMIN=/config
+
+# ---finish up
+# we expect to override this when deploying live, but if we leave the user as root then it causes issues with tests.
+USER 1000:1000
+# change default directory when entering container with --build-arg (ex: `--build-arg WORKINGDIR=projects/qual_nimbusprecision`)
+#ignoring this will set it to the standard directory
+ARG WORKINGDIR=ulhelper
+WORKDIR /$WORKINGDIR
+
+# CI fields, ARG is set at build time, then made available as an ENV for the container to use
+# LABELs are also appended to the image for housekeeping purposes.
+ARG CI_BUILD_DATE='n/a'
+ARG CI_BUILD_USER='n/a'
+ARG CI_BUILD_COMMENTS='n/a'
+
+ENV BUILD_DATE=$CI_BUILD_DATE \
+    BUILD_USER=$CI_BUILD_USER \
+    BUILD_COMMENTS=$CI_BUILD_COMMENTS
+
+LABEL build_date=$CI_BUILD_DATE \
+    build_user=$CI_BUILD_USER
+
+CMD  tcsh -l

@@ -1,7 +1,7 @@
-# makefile for building and running pyreports docker images
+# makefile for building and running ulhelper docker images
 #
 # We have the following docker images (for now just one)
-# 1: pyreports-base which has the oracle instantclient
+# 1: ulhelper-base which has the oracle instantclient
 
 BASE_IMAGE_NAME = ulhelper-base
 BASE_DOCKERFILE = ${BASE_IMAGE_NAME}.dock
@@ -17,16 +17,18 @@ WEBSERVER    =${TOP_DIR}/webserver
 # VERIFICATION_DIR    =${TOP_DIR}/verificationtests
 
 # monthly reports are written to this directory
-OUTREPORTDIR =${TOP_DIR}/webserver/monthlyreports
+# OUTREPORTDIR =${TOP_DIR}/webserver/monthlyreports
 
 # pytest outputs are written to /tmp in the docker instance --
 # mount these here so we can inspect test output from outside the container
 DOCKERTEMPDIR=${TOP_DIR}/docktemp
 
 # these mounts are for code development --
-DEV_DIR_MOUNTS = -v ${PROJECT_DIR}:/projects -v ${CFEPYREP_SRC}:/cfepyrep -v ${WEBSERVER}:/webserver -v ${OUTREPORTDIR}:/monthlyreports -v ${DOCKERTEMPDIR}:/tmp -v ${VERIFICATION_DIR}:/verificationtests
+DEV_DIR_MOUNTS = -v ${ULHELPER_SRC}:/ulhelper -v ${WEBSERVER}:/webserver -v ${DOCKERTEMPDIR}:/tmp
+# -v ${VERIFICATION_DIR}:/verificationtests
 
-PROD_DIR_MOUNTS = -v ${OUTREPORTDIR}:/monthlyreports
+PROD_DIR_MOUNTS =
+# -v ${OUTREPORTDIR}:/monthlyreports
 
 ALL_DIR_MOUNTS = ${DEV_DIR_MOUNTS} ${PROD_DIR_MOUNTS}
 
@@ -48,7 +50,7 @@ RUN_PWD = /projects
 default: help
 
 # NOTE: this code taken from https://gist.github.com/rcmachado/af3db315e31383502660
-help: ## This Makefile can be used to build and run the cfepyreports docker images.
+help: ## This Makefile can be used to build and run the ulhelper docker images.
 	$(info Available targets:)
 	@awk '/^[a-zA-Z\-\_0-9]+:/ {                                   \
           nb = sub( /^## /, "", helpMsg );                             \
@@ -63,18 +65,16 @@ help: ## This Makefile can be used to build and run the cfepyreports docker imag
         width=$$(grep -o '^[a-zA-Z_0-9]\+:' $(MAKEFILE_LIST) | wc -L)  \
 	$(MAKEFILE_LIST)
 
-build-base: ${BASE_DOCKERFILE} ## build the pyreports-base docker image
+build-base: ${BASE_DOCKERFILE} ## build the ulhelper-base docker image
 	docker build -f ${BASE_DOCKERFILE} -t ${BASE_IMAGE_NAME} ${BUILD_ARGS} .
-build-base-nocache: ## build the pyreports-base docker image from scratch
+build-base-nocache: ## build the ulhelper-base docker image from scratch
 	docker build --no-cache -f ${BASE_DOCKERFILE} -t ${BASE_IMAGE_NAME} ${BUILD_ARGS} .
 #--
-run-base-prod: ## run the pyreports-base docker image as the current non-root user (production mounts)
+run-base-prod: ## run the ulhelper-base docker image as the current non-root user (production mounts)
 	docker run --rm --name ${BASE_CONTAINER_NAME} --net=host -e VIRTUAL_HOST=${WEBSERVER_HOSTNAME} --user $$(id -u):$$(id -g) -it ${PROD_DIR_MOUNTS} ${BASE_IMAGE_NAME}
-run-base-local: ## run the pyreports-base docker image as the current non-root user with mounting local code directories
+run-base-local: ## run the ulhelper-base docker image as the current non-root user with mounting local code directories
 	docker run --rm --name ${BASE_CONTAINER_NAME} --net=host -e VIRTUAL_HOST=${WEBSERVER_HOSTNAME} --user $$(id -u):$$(id -g) -it ${ALL_DIR_MOUNTS} ${BASE_IMAGE_NAME}
-run-base-qai:  ## like the above, except that the container will be on the "qai_qai" network
-	docker run --rm --name ${BASE_CONTAINER_NAME} --net=qai_qai -e VIRTUAL_HOST=${WEBSERVER_HOSTNAME} --user $$(id -u):$$(id -g) -it ${ALL_DIR_MOUNTS} ${BASE_IMAGE_NAME}
-run-base-root: ## run the pyreports-base docker image as the current non-root user with mounting local code directories
+run-base-root: ## run the ulhelper-base docker image as the current non-root user with mounting local code directories
 	docker run --rm --name ${BASE_CONTAINER_NAME} -it -p9000:9000 ${ALL_DIR_MOUNTS} -v ${CONFIG_DIR}:/config ${BASE_IMAGE_NAME}
 clean: ## clean up the local directory
 	rm -rf *~ .pytest_cache

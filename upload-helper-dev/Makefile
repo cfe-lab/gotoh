@@ -10,10 +10,11 @@ BASE_CONTAINER_NAME = ulhelper-base-container
 
 TOP_DIR = ${CURDIR}
 
-CONFIG_DIR   =${TOP_DIR}/config
-PROJECT_DIR  =${TOP_DIR}/projects
-ULHELPER_SRC =${TOP_DIR}/ulhelper
-WEBSERVER    =${TOP_DIR}/webserver
+CONFIG_DIR    =${TOP_DIR}/config
+PROJECT_DIR   =${TOP_DIR}/projects
+ULHELPER_SRC  =${TOP_DIR}/ulhelper
+ALIGNMENT_SRC =${TOP_DIR}/alignment/gotoh
+WEBSERVER     =${TOP_DIR}/webserver
 # VERIFICATION_DIR    =${TOP_DIR}/verificationtests
 
 # monthly reports are written to this directory
@@ -24,7 +25,7 @@ WEBSERVER    =${TOP_DIR}/webserver
 DOCKERTEMPDIR=${TOP_DIR}/docktemp
 
 # these mounts are for code development --
-DEV_DIR_MOUNTS = -v ${ULHELPER_SRC}:/ulhelper -v ${WEBSERVER}:/webserver -v ${DOCKERTEMPDIR}:/tmp
+DEV_DIR_MOUNTS = -v ${ULHELPER_SRC}:/ulhelper -v ${WEBSERVER}:/webserver -v ${DOCKERTEMPDIR}:/tmp -v ${ALIGNMENT_SRC}:/alignment/gotoh
 # -v ${VERIFICATION_DIR}:/verificationtests
 
 PROD_DIR_MOUNTS =

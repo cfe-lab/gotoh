@@ -17,9 +17,9 @@ fastapi>=0.70.0
 uvicorn[standard]>=0.13
 ujson>=4.3
 # need these for user authentication
-python-multipart>=0.0.5
-python-jose[cryptography]>=3.2
-passlib[bcrypt]>=1.7.4
+# python-multipart>=0.0.5
+# python-jose[cryptography]>=3.2
+# passlib[bcrypt]>=1.7.4
 # for serving static files (web front end)
 #aiofiles>=0.7
 # need this for web front end
@@ -37,3 +37,5 @@ flake8>=3.7
 pylint>=2.4
 mypy>=0.670
 pep8-naming>=0.8.2
+#--for Gotoh alignment
+alignment/gotoh

@@ -1,26 +1,17 @@
-# basic docker file for pyreports
-# install instant client and sqlplus on ubuntu20.04
+# basic docker file for upload-helper
+# install instant client on alpine 3.15
 
-FROM ubuntu:20.04
+FROM alpine:3.15
 
-LABEL maintainer=wscott@bccfe.ca
+LABEL maintainer=jkai@bccfe.ca
 
 # the less, make, tcsh and vim are purely for convenience
 # we use rlwrap for command line editing in sqlplus
 # we need libaio1 libaio-dev for the instantclient
 # we use supervisor for running crond and the webserver in the container
-RUN apt-get -y update && apt-get -y upgrade &&\
-apt-get -y install wget less unzip tcsh make rlwrap python3-pip libaio1 libaio-dev
-
-
-# -- oracle instant client -- these are previosuly downloaded zip files
-#COPY build-deps /build-deps
-#RUN unzip /build-deps/instantclient-basic*   -d /opt/oracle
-#RUN unzip /build-deps/instantclient-sqlplus* -d /opt/oracle
-
-#ENV PATH=/opt/oracle/instantclient_19_8:$PATH
-#ENV LD_LIBRARY_PATH=/opt/oracle/instantclient_19_8:$LD_LIBRARY_PATH
-#ENV ORACLE_HOME=/opt/oracle/instantclient_19_8
+RUN apk update && apk upgrade &&\
+    apk add wget less unzip tcsh make rlwrap py3-pip libaio libaio-dev \
+            python3-dev gcc g++ libc-dev libffi-dev
 
 # add any other build dependencies here...
 
@@ -31,37 +22,44 @@ ENV DISPLAY :0
 
 # set the timezone for Vancouver, so that datetime.now() returns our
 # local time, not UTC.
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install tzdata
+RUN apk add tzdata
 ENV TZ=America/Vancouver
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-# Install the MS Core Fonts to get access to the Trebuchet MS font.
-# We follow the instructions from this Stack Overflow answer to accept
-# the EULA automatically:
-# https://askubuntu.com/a/25614
-RUN echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
-RUN apt -y install ttf-mscorefonts-installer
+RUN cp /usr/share/zoneinfo/$TZ /etc/localtime
+#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # we define these users here so that we can launch an image as a local user
 # see the Makefile in the top directory...
-RUN useradd -rm -s /bin/tcsh -u 1000 dockuser00 &&\
-    useradd -rm -s /bin/tcsh -u 1001 dockuser01 &&\
-    useradd -rm -s /bin/tcsh -u 1002 dockuser02 &&\
-    useradd -rm -s /bin/tcsh -u 1003 dockuser03 &&\
-    useradd -rm -s /bin/tcsh -u 1004 dockuser04
+RUN addgroup 1000 &&\
+    addgroup 1001 &&\
+    addgroup 1002 &&\
+    addgroup 1003 &&\
+    addgroup 1004
+RUN adduser -S -s /bin/tcsh -G 1000 dockuser00 &&\
+    adduser -S -s /bin/tcsh -G 1001 dockuser01 &&\
+    adduser -S -s /bin/tcsh -G 1002 dockuser02 &&\
+    adduser -S -s /bin/tcsh -G 1003 dockuser03 &&\
+    adduser -S -s /bin/tcsh -G 1004 dockuser04
 
 # seem to need the update here...
-# RUN apt-get update && apt-get -y install python3-pip
+# RUN apk update && apk add py3-pip
 
 # copy source code and install python dependencies
 COPY ulhelper /ulhelper
+COPY alignment/gotoh /alignment/gotoh
 # COPY ulhelper/requirements.txt /ulhelper
+RUN pip3 install --upgrade pip
 RUN pip3 install --no-cache-dir -r /ulhelper/requirements.txt
 # COPY projects  /projects
 COPY webserver /webserver
 
 ENV PYTHONPATH=/ulhelper:/:$PYTHONPATH
 ENV MYPYPATH=/ulhelper:/:$PYTHONPATH
+
+ENV PYTHONPATH=/alignment/gotoh:/:$PYTHONPATH
+ENV MYPYPATH=/alignment/gotoh:/:$PYTHONPATH
+
+# Remove large compile tools
+RUN apk del python3-dev gcc g++ libc-dev libffi-dev
 
 # Copy some configuration files into the image
 COPY config /config

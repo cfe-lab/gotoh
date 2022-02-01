@@ -7,9 +7,9 @@
 from fastapi import FastAPI
 # BackgroundTasks, Depends, Request, Form, WebSocket, HTTPException
 
-from ulhelper.webconfig import WebServerConfig
-import ulhelper.webtypes as webtypes
-from ulhelper.align_it import AlignIt
+from alignment.webconfig import WebServerConfig
+import alignment.webtypes as webtypes
+from alignment.align_it import AlignIt
 
 API_VERSION = 1.0
 API_DATE = "2022-01-26"

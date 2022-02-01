@@ -1,7 +1,7 @@
 """Test the webtypes module"""
 
 
-import ulhelper.webtypes as webtypes
+import alignment.webtypes as webtypes
 import pytest
 from pydantic.error_wrappers import ValidationError
 

@@ -1,29 +1,13 @@
-#--for database access
-#cx_Oracle>=8.1.0
-#SQLAlchemy>=1.3.0
-#pandas>=1.0
-#-- report generation
-#reportlab>=3.5
-#matplotlib>=3.3.4
-#pdfrw>=0.4
 pydantic>=1.6.2
 # pydantic-cli>=3.1.0
 pydantic-cli>=4.2.0
 #--temporary storage and config files
-pyyaml>=5.4.1
+# pyyaml>=5.4.1
 #--API service
 # fastapi>=0.68.1, <0.69.0
 fastapi>=0.70.0
 uvicorn[standard]>=0.13
 ujson>=4.3
-# need these for user authentication
-# python-multipart>=0.0.5
-# python-jose[cryptography]>=3.2
-# passlib[bcrypt]>=1.7.4
-# for serving static files (web front end)
-#aiofiles>=0.7
-# need this for web front end
-#jinja2>=3.0.1
 #--for code development
 # need requests for fastapi TestClient
 requests>=2.26

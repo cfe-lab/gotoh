@@ -1,7 +1,7 @@
 """Test the align_it module"""
 
 
-import ulhelper.align_it as al
+import alignment.align_it as al
 import pytest
 from pydantic.error_wrappers import ValidationError
 

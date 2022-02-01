@@ -1,18 +1,18 @@
-# makefile for building and running ulhelper docker images
+# makefile for building and running alignment docker images
 #
 # We have the following docker images (for now just one)
-# 1: ulhelper-base which has the oracle instantclient
+# 1: alignment-base which has the oracle instantclient
 
-BASE_IMAGE_NAME = ulhelper-base
+BASE_IMAGE_NAME = alignment-base
 BASE_DOCKERFILE = ${BASE_IMAGE_NAME}.dock
-BASE_CONTAINER_NAME = ulhelper-base-container
+BASE_CONTAINER_NAME = alignment-base-container
 
 
 TOP_DIR = ${CURDIR}
 
 CONFIG_DIR    =${TOP_DIR}/config
 PROJECT_DIR   =${TOP_DIR}/projects
-ULHELPER_SRC  =${TOP_DIR}/ulhelper
+ALIGNMENT_DIR =${TOP_DIR}/alignment
 ALIGNMENT_SRC =${TOP_DIR}/alignment/gotoh
 WEBSERVER     =${TOP_DIR}/webserver
 # VERIFICATION_DIR    =${TOP_DIR}/verificationtests
@@ -25,7 +25,7 @@ WEBSERVER     =${TOP_DIR}/webserver
 DOCKERTEMPDIR=${TOP_DIR}/docktemp
 
 # these mounts are for code development --
-DEV_DIR_MOUNTS = -v ${ULHELPER_SRC}:/ulhelper -v ${WEBSERVER}:/webserver -v ${DOCKERTEMPDIR}:/tmp -v ${ALIGNMENT_SRC}:/alignment/gotoh
+DEV_DIR_MOUNTS = -v ${ALIGNMENT_DIR}:/alignment -v ${WEBSERVER}:/webserver -v ${DOCKERTEMPDIR}:/tmp -v ${ALIGNMENT_SRC}:/alignment/gotoh
 # -v ${VERIFICATION_DIR}:/verificationtests
 
 PROD_DIR_MOUNTS =
@@ -51,7 +51,7 @@ RUN_PWD = /projects
 default: help
 
 # NOTE: this code taken from https://gist.github.com/rcmachado/af3db315e31383502660
-help: ## This Makefile can be used to build and run the ulhelper docker images.
+help: ## This Makefile can be used to build and run the alignment docker images.
 	$(info Available targets:)
 	@awk '/^[a-zA-Z\-\_0-9]+:/ {                                   \
           nb = sub( /^## /, "", helpMsg );                             \
@@ -66,16 +66,16 @@ help: ## This Makefile can be used to build and run the ulhelper docker images.
         width=$$(grep -o '^[a-zA-Z_0-9]\+:' $(MAKEFILE_LIST) | wc -L)  \
 	$(MAKEFILE_LIST)
 
-build-base: ${BASE_DOCKERFILE} ## build the ulhelper-base docker image
+build-base: ${BASE_DOCKERFILE} ## build the alignment-base docker image
 	docker build -f ${BASE_DOCKERFILE} -t ${BASE_IMAGE_NAME} ${BUILD_ARGS} .
-build-base-nocache: ## build the ulhelper-base docker image from scratch
+build-base-nocache: ## build the alignment-base docker image from scratch
 	docker build --no-cache -f ${BASE_DOCKERFILE} -t ${BASE_IMAGE_NAME} ${BUILD_ARGS} .
 #--
-run-base-prod: ## run the ulhelper-base docker image as the current non-root user (production mounts)
+run-base-prod: ## run the alignment-base docker image as the current non-root user (production mounts)
 	docker run --rm --name ${BASE_CONTAINER_NAME} --net=host -e VIRTUAL_HOST=${WEBSERVER_HOSTNAME} --user $$(id -u):$$(id -g) -it ${PROD_DIR_MOUNTS} ${BASE_IMAGE_NAME}
-run-base-local: ## run the ulhelper-base docker image as the current non-root user with mounting local code directories
+run-base-local: ## run the alignment-base docker image as the current non-root user with mounting local code directories
 	docker run --rm --name ${BASE_CONTAINER_NAME} --net=host -e VIRTUAL_HOST=${WEBSERVER_HOSTNAME} --user $$(id -u):$$(id -g) -it ${ALL_DIR_MOUNTS} ${BASE_IMAGE_NAME}
-run-base-root: ## run the ulhelper-base docker image as the current non-root user with mounting local code directories
+run-base-root: ## run the alignment-base docker image as the current non-root user with mounting local code directories
 	docker run --rm --name ${BASE_CONTAINER_NAME} -it -p9000:9000 ${ALL_DIR_MOUNTS} -v ${CONFIG_DIR}:/config ${BASE_IMAGE_NAME}
 clean: ## clean up the local directory
 	rm -rf *~ .pytest_cache

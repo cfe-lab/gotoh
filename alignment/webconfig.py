@@ -1,4 +1,4 @@
-""" Define the configuration parameters of the ulhelper webserver
+""" Define the configuration parameters of the alignment webserver
 """
 
 

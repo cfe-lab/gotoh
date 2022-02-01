@@ -156,5 +156,6 @@ $(DLLIB): $(OBJS) Makefile
 
 $(OBJS): ruby.h defines.h
 
-alignment:
-	g++ alignment-2015.cpp -shared -DUSERUBY -DUSERUBY2 -I/usr/share/rvm/rubies/ruby-3.0.0/include/ruby-3.0.0 -I/usr/share/rvm/rubies/ruby-3.0.0/include/ruby-3.0.0/x86_64-linux -o alignment.X.r2.so -O3 -fPIC
+### USED TO COMPILE .so FOR RUBY APPLICATIONS ###
+# alignment:
+# 	g++ gotoh.cpp -shared -DUSERUBY -DUSERUBY2 -I/usr/share/rvm/rubies/ruby-3.0.0/include/ruby-3.0.0 -I/usr/share/rvm/rubies/ruby-3.0.0/include/ruby-3.0.0/x86_64-linux -o alignment.X.r2.so -O3 -fPIC

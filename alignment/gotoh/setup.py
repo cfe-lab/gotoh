@@ -6,6 +6,6 @@ gotoh = Extension('gotoh',
 
 setup (name = 'gotoh',
        version = '0.3a0',
-       description = "Wrapper for Conan's alignment.cpp code",
+       description = "Wrapper for Gotoh alignment code",
        ext_modules = [gotoh],
        zip_safe = False) #avoid headache with permissions on ~/.python-eggs

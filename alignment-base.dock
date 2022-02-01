@@ -44,16 +44,16 @@ RUN adduser -S -s /bin/tcsh -G 1000 dockuser00 &&\
 # RUN apk update && apk add py3-pip
 
 # copy source code and install python dependencies
-COPY ulhelper /ulhelper
+COPY alignment /alignment
 COPY alignment/gotoh /alignment/gotoh
-# COPY ulhelper/requirements.txt /ulhelper
+# COPY alignment/requirements.txt /alignment
 RUN pip3 install --upgrade pip
-RUN pip3 install --no-cache-dir -r /ulhelper/requirements.txt
+RUN pip3 install --no-cache-dir -r /alignment/requirements.txt
 # COPY projects  /projects
 COPY webserver /webserver
 
-ENV PYTHONPATH=/ulhelper:/:$PYTHONPATH
-ENV MYPYPATH=/ulhelper:/:$PYTHONPATH
+ENV PYTHONPATH=/alignment:/:$PYTHONPATH
+ENV MYPYPATH=/alignment:/:$PYTHONPATH
 
 ENV PYTHONPATH=/alignment/gotoh:/:$PYTHONPATH
 ENV MYPYPATH=/alignment/gotoh:/:$PYTHONPATH
@@ -71,7 +71,7 @@ ENV TNS_ADMIN=/config
 USER 1000:1000
 # change default directory when entering container with --build-arg (ex: `--build-arg WORKINGDIR=projects/qual_nimbusprecision`)
 #ignoring this will set it to the standard directory
-ARG WORKINGDIR=ulhelper
+ARG WORKINGDIR=alignment
 WORKDIR /$WORKINGDIR
 
 # CI fields, ARG is set at build time, then made available as an ENV for the container to use

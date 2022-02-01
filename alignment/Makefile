@@ -2,9 +2,9 @@
 #
 TOP_DIR = ${CURDIR}
 
-PROJECT_DIR  =${TOP_DIR}/projects
-ULHELPER_SRC =${TOP_DIR}/ulhelper
-WEBSERVER    =${TOP_DIR}/webserver
+PROJECT_DIR   =${TOP_DIR}/projects
+ALIGNMENT_DIR =${TOP_DIR}/alignment
+WEBSERVER     =${TOP_DIR}/webserver
 
 
 default: help

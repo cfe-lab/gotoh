@@ -17,6 +17,21 @@ Gotoh, Osamu. "Optimal alignment between groups of sequences and its application
      CABIOS 9.3 (1993): 361-370.
 ```
 
+# Launching the Docker container
+
+To build the Docker container, use the included Makefile in the root directory.
+This is currently tested with `make build-base`. This builds the Docker image.
+You can launch the Docker image with `make run-base-local`.
+(Root permissions are needed to run these commands.)
+
+Once the Docker image is running, you can launch the FastAPI using
+```
+cd /webserver/
+./runserver.sh
+```
+
+There are two API endpoints `/align_it` (nucleotide) and `align_it_aa` (amino acid).
+See the FastAPI docs `<local-address>/docs` for details.
 
 # Python Bindings
 

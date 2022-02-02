@@ -10,7 +10,6 @@ BASE_CONTAINER_NAME = alignment-base-container
 
 TOP_DIR = ${CURDIR}
 
-CONFIG_DIR    =${TOP_DIR}/config
 PROJECT_DIR   =${TOP_DIR}/projects
 ALIGNMENT_DIR =${TOP_DIR}/alignment
 ALIGNMENT_SRC =${TOP_DIR}/alignment/gotoh
@@ -76,6 +75,6 @@ run-base-prod: ## run the alignment-base docker image as the current non-root us
 run-base-local: ## run the alignment-base docker image as the current non-root user with mounting local code directories
 	docker run --rm --name ${BASE_CONTAINER_NAME} --net=host -e VIRTUAL_HOST=${WEBSERVER_HOSTNAME} --user $$(id -u):$$(id -g) -it ${ALL_DIR_MOUNTS} ${BASE_IMAGE_NAME}
 run-base-root: ## run the alignment-base docker image as the current non-root user with mounting local code directories
-	docker run --rm --name ${BASE_CONTAINER_NAME} -it -p9000:9000 ${ALL_DIR_MOUNTS} -v ${CONFIG_DIR}:/config ${BASE_IMAGE_NAME}
+	docker run --rm --name ${BASE_CONTAINER_NAME} -it -p9000:9000 ${ALL_DIR_MOUNTS} ${BASE_IMAGE_NAME}
 clean: ## clean up the local directory
 	rm -rf *~ .pytest_cache

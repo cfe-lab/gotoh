@@ -49,7 +49,6 @@ COPY alignment/gotoh /alignment/gotoh
 # COPY alignment/requirements.txt /alignment
 RUN pip3 install --upgrade pip
 RUN pip3 install --no-cache-dir -r /alignment/requirements.txt
-# COPY projects  /projects
 COPY webserver /webserver
 
 ENV PYTHONPATH=/alignment:/:$PYTHONPATH
@@ -60,11 +59,6 @@ ENV MYPYPATH=/alignment/gotoh:/:$PYTHONPATH
 
 # Remove large compile tools
 RUN apk del python3-dev gcc g++ libc-dev libffi-dev
-
-# Copy some configuration files into the image
-COPY config /config
-# need this for oracle to find the tnsnames.ora
-ENV TNS_ADMIN=/config
 
 # ---finish up
 # we expect to override this when deploying live, but if we leave the user as root then it causes issues with tests.

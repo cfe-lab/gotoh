@@ -1,4 +1,4 @@
-# makefile for running tests in upload-helper
+# makefile for running tests in alignment
 #
 TOP_DIR = ${CURDIR}
 
@@ -10,7 +10,7 @@ WEBSERVER     =${TOP_DIR}/webserver
 default: help
 
 # NOTE: this code taken from https://gist.github.com/rcmachado/af3db315e31383502660
-help: ## This Makefile can be used to run the upload-helper unit tests
+help: ## This Makefile can be used to run the alignment unit tests
 	$(info Available targets:)
 	@awk '/^[a-zA-Z\-\_0-9]+:/ {                                   \
           nb = sub( /^## /, "", helpMsg );                             \

@@ -5,7 +5,7 @@ gotoh = Extension('gotoh',
                   define_macros=[('__PYTHON__', None)])
 
 setup (name = 'gotoh',
-       version = '0.3a0',
+       version = '0.3.0',
        description = "Wrapper for Gotoh alignment code",
        ext_modules = [gotoh],
        zip_safe = False) #avoid headache with permissions on ~/.python-eggs

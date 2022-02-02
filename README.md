@@ -51,7 +51,7 @@ With these installed, you should be able to build the extension module with
 Alternately, you may install the `gotoh` module using `pip` by adding this repo
 to your `requirements.txt` file or similar method.
 ```
-    git+https://github.com/cfe-lab/gotoh.git@v0.3a0#egg=gotoh&subdirectory=alignment/gotoh
+    git+https://github.com/cfe-lab/gotoh.git@v0.3.0#egg=gotoh&subdirectory=alignment/gotoh
 ```
 
 # Ruby Bindings

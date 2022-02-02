@@ -244,7 +244,24 @@ int align(string* seqa, string* seqb, string* newseqa, string* newseqb,
 
     int M = seqa->size(); // first group of pre-aligned sequences
     int N = seqb->size(); // second group
-
+    
+    // if empty ref, return seqb as-is, and seqa as gaps of size(seqb)
+    // prevents a buffer overflow in the traceback matrices which assume M>0
+    if (M==0)
+    {
+        int j;
+        int alignment_score=0;
+        for (j=0 ; j < N ; j++)
+        {
+            //skip terminal (whole seq) gap penalties if user specifies this option
+            if (use_terminal_gap_penalty==0) alignment_score += (j==0) ? (gip+gep) : gep ;
+            *newseqa += '-';
+            *newseqb += (*seqb)[j];;
+        }
+        
+        return alignment_score;
+    }
+    
     int i, j;
 
     // not all elements of D, P, and Q need to be stored - vectors are adequate
@@ -657,6 +674,40 @@ void widen_gaps(string* seq)
         return retval;
     }
 
+    static PyObject * align_it_rb(PyObject * self, PyObject * args)
+    {
+        // emulate Ruby implementation of align_it
+        const char * standard;
+        const char * seq;
+        int gap_init_penalty;
+        int gap_extend_penalty;
+
+        if (!PyArg_ParseTuple(args, "ssii", &standard, &seq, &gap_init_penalty, &gap_extend_penalty)) {
+            return NULL;
+        }
+
+        init_pairscore(1, 1);
+
+        string* seqa = new string(standard);  // reference
+        string* seqb = new string(seq);  // query
+        trim(seqa);
+        trim(seqb);
+        degap(seqa);
+        degap(seqb);
+        string* newseqa = new string();
+        string* newseqb = new string();
+
+        align(seqa, seqb, newseqa, newseqb, gap_init_penalty, gap_extend_penalty, 0);
+
+        PyObject * retval = Py_BuildValue("ss", newseqa->c_str(), newseqb->c_str());
+        delete seqa;
+        delete seqb;
+        delete newseqa;
+        delete newseqb;
+
+        return retval;
+    }
+
     static PyObject * align_it_aa(PyObject * self, PyObject * args)
     {
         const char * standard;
@@ -729,6 +780,7 @@ void widen_gaps(string* seq)
     static PyMethodDef AlignmentMethods [] =
     {
         {"align_it", align_it, METH_VARARGS, "Pairwise alignment of nucleotide sequences."},
+        {"align_it_rb", align_it_rb, METH_VARARGS, "Pairwise alignment of nucleotide sequences using ReCall settings."},
         {"align_it_aa", align_it_aa, METH_VARARGS, "Pairwise alignment of protein sequences using empirical HIV 25% score matrix."},
         {"align_it_aa_rb", align_it_aa_rb, METH_VARARGS, "Pairwise alignment of protein sequences using ReCall settings."},
         {NULL, NULL, 0, NULL}
@@ -808,4 +860,3 @@ void widen_gaps(string* seq)
     }
 
 #endif
-

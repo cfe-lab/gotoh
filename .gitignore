@@ -1,11 +1,4 @@
-Makefile
-
-*.h
-*.o
-*.so
-
-/.idea
-/venv_gotoh
-
-dist/
-gotoh.egg-info/
+*~
+env/
+__pycache__/
+.pytest_cache/

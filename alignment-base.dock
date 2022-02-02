@@ -1,0 +1,84 @@
+# basic docker file for alignment api
+# install on alpine 3.15
+
+FROM alpine:3.15
+
+LABEL maintainer=jkai@bccfe.ca
+
+# the less, make, tcsh and vim are purely for convenience
+# we use rlwrap for command line editing in sqlplus
+# we need libaio1 libaio-dev for the instantclient
+# we use supervisor for running crond and the webserver in the container
+RUN apk update && apk upgrade &&\
+    apk add wget less unzip tcsh make rlwrap py3-pip libaio libaio-dev \
+            python3-dev gcc g++ libc-dev libffi-dev
+
+# add any other build dependencies here...
+
+#RUN rm -rf /build-deps
+
+# need this for GUI programs like tkinter to work within docker...
+ENV DISPLAY :0
+
+# set the timezone for Vancouver, so that datetime.now() returns our
+# local time, not UTC.
+RUN apk add tzdata
+ENV TZ=America/Vancouver
+RUN cp /usr/share/zoneinfo/$TZ /etc/localtime
+#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# we define these users here so that we can launch an image as a local user
+# see the Makefile in the top directory...
+RUN addgroup 1000 &&\
+    addgroup 1001 &&\
+    addgroup 1002 &&\
+    addgroup 1003 &&\
+    addgroup 1004
+RUN adduser -S -s /bin/tcsh -G 1000 dockuser00 &&\
+    adduser -S -s /bin/tcsh -G 1001 dockuser01 &&\
+    adduser -S -s /bin/tcsh -G 1002 dockuser02 &&\
+    adduser -S -s /bin/tcsh -G 1003 dockuser03 &&\
+    adduser -S -s /bin/tcsh -G 1004 dockuser04
+
+# seem to need the update here...
+# RUN apk update && apk add py3-pip
+
+# copy source code and install python dependencies
+COPY alignment /alignment
+COPY alignment/gotoh /alignment/gotoh
+# COPY alignment/requirements.txt /alignment
+RUN pip3 install --upgrade pip
+RUN pip3 install --no-cache-dir -r /alignment/requirements.txt
+COPY webserver /webserver
+
+ENV PYTHONPATH=/alignment:/:$PYTHONPATH
+ENV MYPYPATH=/alignment:/:$PYTHONPATH
+
+ENV PYTHONPATH=/alignment/gotoh:/:$PYTHONPATH
+ENV MYPYPATH=/alignment/gotoh:/:$PYTHONPATH
+
+# Remove large compile tools
+RUN apk del python3-dev gcc g++ libc-dev libffi-dev
+
+# ---finish up
+# we expect to override this when deploying live, but if we leave the user as root then it causes issues with tests.
+USER 1000:1000
+# change default directory when entering container with --build-arg (ex: `--build-arg WORKINGDIR=projects/qual_nimbusprecision`)
+#ignoring this will set it to the standard directory
+ARG WORKINGDIR=alignment
+WORKDIR /$WORKINGDIR
+
+# CI fields, ARG is set at build time, then made available as an ENV for the container to use
+# LABELs are also appended to the image for housekeeping purposes.
+ARG CI_BUILD_DATE='n/a'
+ARG CI_BUILD_USER='n/a'
+ARG CI_BUILD_COMMENTS='n/a'
+
+ENV BUILD_DATE=$CI_BUILD_DATE \
+    BUILD_USER=$CI_BUILD_USER \
+    BUILD_COMMENTS=$CI_BUILD_COMMENTS
+
+LABEL build_date=$CI_BUILD_DATE \
+    build_user=$CI_BUILD_USER
+
+CMD  tcsh -l

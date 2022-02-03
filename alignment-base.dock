@@ -61,6 +61,8 @@ ENV MYPYPATH=/alignment/gotoh:/:$PYTHONPATH
 RUN apk del python3-dev gcc g++ libc-dev libffi-dev
 
 # ---finish up
+# webserver uses port 8000
+EXPOSE 8000
 # we expect to override this when deploying live, but if we leave the user as root then it causes issues with tests.
 USER 1000:1000
 # change default directory when entering container with --build-arg (ex: `--build-arg WORKINGDIR=projects/qual_nimbusprecision`)

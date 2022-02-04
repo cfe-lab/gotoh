@@ -2,11 +2,13 @@
 """ The FastAPI web server
 """
 
+import os
 # import typing
 # import pydantic.error_wrappers
 from fastapi import FastAPI
 # BackgroundTasks, Depends, Request, Form, WebSocket, HTTPException
 
+from alignment.gotoh.about import __title__, __version__
 from alignment.webconfig import WebServerConfig
 import alignment.webtypes as webtypes
 from alignment.align_it import AlignIt
@@ -29,10 +31,13 @@ WS_CONFIG = WebServerConfig()
          tags=["version"],
          response_model=VersionResponse)
 def get_version() -> VersionResponse:
-    """Return some version information about the fastapi server.
-    Does not require DB access."""
+    """Return some version information about the fastapi server."""
+    build_date = os.getenv("BUILD_DATE","Not found")
     return VersionResponse(api_version=API_VERSION,
-                           api_date=API_DATE)
+                           api_date=API_DATE,
+                           module_name = __title__,
+                           module_version = __version__,
+                           container_build_date = build_date)
 
 
 @app.put("/align-it",

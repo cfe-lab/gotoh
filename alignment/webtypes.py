@@ -9,6 +9,9 @@ class VersionResponse(BaseModel):
     """The response to an API version request."""
     api_version: str
     api_date: str
+    module_name: str
+    module_version: str
+    container_build_date: str
 
 
 class AlignItInput(BaseModel):

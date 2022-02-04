@@ -10,8 +10,8 @@ LABEL maintainer=jkai@bccfe.ca
 # we need libaio1 libaio-dev for the instantclient
 # we use supervisor for running crond and the webserver in the container
 RUN apk update && apk upgrade &&\
-    apk add wget less unzip tcsh make rlwrap py3-pip libaio libaio-dev \
-            python3-dev gcc g++ libc-dev libffi-dev
+    apk --no-cache add wget less unzip tcsh make rlwrap py3-pip libaio libaio-dev \
+                        python3-dev gcc g++ libc-dev libffi-dev
 
 # add any other build dependencies here...
 
@@ -81,6 +81,6 @@ ENV BUILD_DATE=$CI_BUILD_DATE \
     BUILD_COMMENTS=$CI_BUILD_COMMENTS
 
 LABEL build_date=$CI_BUILD_DATE \
-    build_user=$CI_BUILD_USER
+      build_user=$CI_BUILD_USER
 
 CMD  tcsh -l

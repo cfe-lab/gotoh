@@ -1,5 +1,7 @@
 #TODO:  Scoring algorithm to improve frame_align?
 
+require 'cfe_gotoh/cfe_gotoh'
+
 
 if(RUBY_PLATFORM =~ /(win|w)32$/)
   if(RUBY_VERSION =~ /^2/)

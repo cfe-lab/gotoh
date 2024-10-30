@@ -50,12 +50,12 @@ module CfeGotoh
     end
   end
 
-  NUCLEOTIDE_MATRIX = self._build_substitution_matrix()
+  NUCLEOTIDE_MATRIX = self._build_substitution_matrix().freeze
 
-  def self.score_alignment(seqa, seqb)
+  def self.score_alignment(standard, query)
     sc = 0.0
-    0.upto(seqa.size() - 1) do |i|
-      sc += NUCLEOTIDE_MATRIX[seqa[i,1].upcase().ord()][seqb[i,1].upcase().ord()]
+    0.upto(standard.size() - 1) do |i|
+      sc += NUCLEOTIDE_MATRIX[standard[i,1].upcase().ord()][query[i,1].upcase().ord()]
     end
     return sc
   end
@@ -81,13 +81,92 @@ module CfeGotoh
     return list
   end
 
+  def self.trim_leading_dashes(standard, query)
+    leading_dashes_match = /^(-+)[^-]/.match(standard)
+    if (leading_dashes_match.nil?)
+      return
+    end
+    leading_dashes = leading_dashes_match[1]
+    standard[0, leading_dashes.size()] = ''
+    query[0, leading_dashes.size()] = ''
+  end
+
+  def self.trim_trailing_dashes(standard, query)
+    trailing_dashes_match = /[^-](-+)$/.match(standard)
+    if (trailing_dashes_match.nil?)
+      return
+    end
+    trailing_dashes = trailing_dashes_match[1]
+    end_of_standard = standard.size() - trailing_dashes.size()
+    standard[end_of_standard, trailing_dashes.size()] = ''
+    query[end_of_standard, trailing_dashes.size()] = ''
+  end
+
+  def self.fix_incomplete_edge_codon(query, side=:leading)
+    edge_idx = 0
+    dash_regex = /^(-+)[^-]/
+    incr = 1
+    if (side != :leading)  # fix the trailing edge
+      edge_idx = -1
+      dash_regex = /[^-](-+)$/
+      incr = -1
+    end
+
+    if (query[edge_idx] == '-')
+      dashes = dash_regex.match(query)[0]  # we know there will be a match
+
+      # If the length of the dashes aren't a multiple of 3, turn some
+      # of the query characters into dashes to force it to be a full
+      # codon of dashes.
+      if (dashes.size() % 3 >= 1)
+        first_non_dash_idx = 0
+        if (side != :leading)
+          first_non_dash_idx = query.size() - dashes.size() - 1
+        end
+        query[first_non_dash_idx] = '-'
+        if (dashes.size() % 3 == 2)
+          query[first_non_dash_idx + incr] = '-'
+        end
+      end
+    end
+  end
+
+  def self.merge_insertions_and_deletions_to_fix_oof_sequences(
+    standard,
+    query
+  )
+    # Merge deletions and insertions until the sequences have a cogent length
+    # (i.e. have length divisible by 3).  This helps fix poor insertions near 
+    # the start of the sequence.
+    raise 'Standard and query should be the same length' if standard.size() != query.size()
+    if(standard.size() % 3 != 0)
+      dex = 0
+      while(dex = standard.index(/-/, dex))
+        [-1, 1, -2, 2].each do |offset|  # look one base away, then two bases away
+          if ((dex + offset >= 0) and query[dex + offset] == '-')
+            standard[dex] = ''
+            query[dex + offset] = ''
+            dex = 0
+            break
+          end
+        end
+        
+        # Stop if the sequences are now a cogent length.
+        if(standard.size() % 3 == 0)
+          break
+        end
+        dex += 1
+      end
+    end
+  end
+
 
   #common_insert_locations is based on amino acid locations starting at base 0.
   #Assumes standard in the first base.
   #Prealign lets you run a lot of the corrections and qc on a already aligned sequence.  
   def self.frame_align(
-    seqa,
-    seqb,
+    standard,
+    query,
     gap_init=3,
     gap_penalty=1,
     common_insert_locations=[],
@@ -95,113 +174,35 @@ module CfeGotoh
     raise_errors=false,
     prealigned=false
   )
-    elem = nil
-    if(prealigned)
-      elem = [seqa, seqb]
-    else
-      elem = align_it(seqa, seqb, gap_init, gap_penalty)
+    if(!prealigned)
+      elem = align_it(standard, query, gap_init, gap_penalty)
+      standard = elem[0]
+      query = elem[1]
     end
-    puts "Wierd sizes Z" if(elem[0].size() != elem[1].size())
+    raise "Standard and query should be the same length" if standard.size() != query.size()
     
-    #Do trimming?
-    if(trim and elem[0] =~ /^(-+)[^-]/)
-      elem[0][0,$1.size()] = ''
-      elem[1][0,$1.size()] = ''
-    end
-    if(trim and elem[0] =~ /[^-](-+)$/)
-      elem[1][(elem[0].size() - $1.size()), $1.size()] = ''
-      elem[0][(elem[0].size() - $1.size()), $1.size()] = ''
+    # Trim leading and trailing dashes if desired.
+    if (trim)
+      trim_leading_dashes(standard, query)
+      trim_trailing_dashes(standard, query)
+      fix_incomplete_edge_codon(standard, query, :leading)
+      fix_incomplete_edge_codon(standard, query, :trailing)
     end
     
-    #Start 
-    if(trim and elem[1][0,1] == '-')
-      #get rid of edges that are the wrong size
-      elem[1] =~ /^(-+)[^-]/
-      #Make sure its a multiple of three
-      dashes = $1
-      if(dashes == nil)
-        #pass
-      elsif((dashes.size() % 3) == 1) 
-        elem[1][dashes.size(),1] = '-'
-        elem[1][dashes.size() + 1,1] = '-'
-      elsif((dashes.size() % 3) == 2)
-        elem[1][dashes.size(),1] = '-'
-      end  
-    end
-    
-    #end
-    if(trim and elem[1][-1,1] == '-')
-      #get rid of edges that are the wrong size
-      elem[1] =~ /[^-](-+)$/
-      #Make sure its a multiple of three
-      dashes = $1
-      if(dashes == nil)
-        #pass
-      elsif((dashes.size() % 3) == 1)
-        elem[1][(elem[1].size() - dashes.size()) - 1] = '-'
-        elem[1][(elem[1].size() - dashes.size()) - 2] = '-'
-      elsif((dashes.size() % 3) == 2)
-        elem[1][(elem[1].size() - dashes.size()) - 1] = '-'
-      end  
-    end
-    
-    
-    #try to merge deletions and insertions if things aren't looking well.
-    #added 16-Nov-2018, helps fix poor insertions near the start.
-    if(elem[0].size() % 3 != 0 or elem[1].size() % 3 != 0)
-      dex = 0 #Don't start at 0, that way lies madness...  Or does it???
-      while(dex = elem[0].index(/-/, dex))
-        #Now, find an ajacent dash in elem[1] to cancel
-        if((dex - 1 >= 0) and elem[1][dex - 1] == '-')
-          elem[0][dex] = ''
-          elem[1][dex - 1] = ''
-          dex = 1
-        elsif(elem[1][dex + 1] == '-')
-          elem[1][dex + 1] = ''
-          elem[0][dex] = ''
-          dex = 1
-        elsif((dex - 2 >= 0) and elem[1][dex - 2] == '-')
-          elem[1][dex - 2] = ''
-          elem[0][dex] = ''
-          dex = 1
-        elsif(elem[1][dex + 2] == '-')
-          elem[1][dex + 2] = ''
-          elem[0][dex] = ''
-          dex = 1
-        end
-        
-        #check to see if we fixed everything
-        if(!(elem[0].size() % 3 != 0 or elem[1].size() % 3 != 0))
-          break
-        end
-      
-        dex += 1
-      end
-      
-    end
+    merge_insertions_and_deletions_to_fix_oof_sequences(standard, query)
 
-    
-    #I wonder if these should throw exceptions by default, but have an option to ignore.
-    if(elem[0].gsub(/[^-]/,'').size() % 3 != 0 and raise_errors)
-      #puts "Can not frame align"
-      raise "Can not frame align, #{elem[0].gsub(/[^-]/,'').size()} inserted bases not divisible by 3"
-      #return elem
+    if(standard.gsub(/[^-]/,'').size() % 3 != 0 and raise_errors)
+      raise "Can not frame align, #{standard.gsub(/[^-]/,'').size()} inserted bases not divisible by 3"
     end
-    if(elem[1].gsub(/[^-]/,'').size() % 3 != 0 and raise_errors)
-      #puts "Can not frame align"
-      #puts elem[0]
-      #puts elem[1]
-      
-      raise "Can not frame align, #{elem[1].gsub(/[^-]/,'').size()} deleted bases not divisible by 3"
-      #return elem
+    if(query.gsub(/[^-]/,'').size() % 3 != 0 and raise_errors)
+      raise "Can not frame align, #{query.gsub(/[^-]/,'').size()} deleted bases not divisible by 3"
     end
     
     #Build the insert/delete lists.
-    insert_list = make_gap_list(elem[0])
-    delete_list = make_gap_list(elem[1])
+    insert_list = make_gap_list(standard)
+    delete_list = make_gap_list(query)
     #Now we have a list that looks like [[3,4,5], [9], [11,12]]
     
-
     if(insert_list.size() > 0)#Inserts first
       new_ins_list = []
       
@@ -242,41 +243,6 @@ module CfeGotoh
         end
       end
       
-  =begin
-      #First step is clustering insertions. (v1:  old version)
-      insert_list.each_with_index do |ins, i|
-        next_ins = insert_list[i + 1]
-        
-        if(ins.size() % 3 != 0) #Wrong size!
-          #Look for next insertions that would make it the right size and are not far apart
-          if(!outta_frame and next_ins and (((next_ins.size() + ins.size()) % 3) == 0) and next_ins[0] - ins[-1] < 8 ) #within 8 bases
-            if(next_ins.size() > ins.size()) #scoring would be good here
-              ins.each do |a|
-                next_ins.insert(0, next_ins[0] - 1) #Insert at start
-              end
-            else
-              next_ins.each do |a|
-                ins.insert(-1, ins[0] + 1) #insert at end
-              end
-              insert_list[i + 1] = ins #Pushing this problem ahead for convinence.
-            end
-            #don't insert into new list, as we've pushed it to the next element.
-          else
-            #I wonder if we should try to merge multiple more than two inserts?  Eh, nah.
-            #return elem
-            outta_frame = true
-            raise "Can not frame align insert" if(raise_errors)
-          end
-        else
-          new_ins_list << ins #this insert is okay
-        end
-        
-      end
-  =end
-      
-      #puts insert_list.inspect
-      #puts new_ins_list.inspect
-      
       #second step should be to frame align inserts (prioritizing to common_points)
       offset = 0 #offset created by previous insertions. (IMPORTANT)
       new_ins_list.each do |ins|
@@ -312,27 +278,18 @@ module CfeGotoh
 
       #make the actual modifications
       #begin
-      #orige = "" + elem[0]
-      elem[0] = elem[0].gsub('-','')
+      #orige = "" + standard
+      standard = standard.gsub('-','')
       new_ins_list.each do |ins|
         ins.each do |i|
-          if(i > elem[0].size())
-            elem[0].insert(-1, '-')
+          if(i > standard.size())
+            standard.insert(-1, '-')
           else
-            elem[0].insert(i, '-')
+            standard.insert(i, '-')
           end
         end
       end
-      #rescue
-      #  puts "OOH---------------------------------------------"
-      #  puts orige.inspect
-      #  puts elem.inspect
-      #  puts new_ins_list.inspect()
-      #  raise $!
-      #end
-
     end
-    
     
     #Deletion---------------------------------------------------------------------------------------------------
     outta_frame = false
@@ -377,40 +334,6 @@ module CfeGotoh
         end
       end
       
-  =begin
-      #First step is clustering deletions. (v1:  old version)
-      delete_list.each_with_index do |del, i|
-        next_del = delete_list[i + 1]
-        
-        if(del.size() % 3 != 0 and !outta_frame) #Wrong size!
-          #Look for next deletions that would make it the right size and are not far apart
-          if(next_del and (((next_del.size() + del.size()) % 3) == 0) and next_del[0] - del[-1] < 6 ) #within 6 bases
-            if(next_del.size() > del.size()) #scoring would be good here
-              del.each do |a|
-                next_del.insert(0, next_del[0] - 1) #delete at start
-              end
-            else
-              next_del.each do |a|
-                del.insert(-1, del[0] + 1) #delete at end
-              end
-              delete_list[i + 1] = del #Pushing this problem ahead for convinence.
-            end
-            #don't delete into new list, as we've pushed it to the next element.
-          else
-            #I wonder if we should try to merge multiple more than two deletes?  Eh, nah.
-            #
-            #return elem
-            new_del_list << del 
-            outta_frame = true
-            #raise "Can not frame align delete"
-          end
-        else
-          new_del_list << del #this delete is okay
-        end
-      end
-  =end
-
-      
       #second step should be to frame align deletes 
       offset = 0 #offset created by previous deletions. (IMPORTANT)
       new_del_list.each do |del|
@@ -435,33 +358,37 @@ module CfeGotoh
       end
       
       #make the actual modifications
-      elem[1] = elem[1].gsub('-','')
+      query = query.gsub('-','')
       new_del_list.each do |del|
         del.each do |i|
-          if(i > elem[1].size() )
-            elem[1].insert(elem[1].size(), '-')
+          if(i > query.size() )
+            query.insert(query.size(), '-')
           else
-            elem[1].insert(i, '-')
+            query.insert(i, '-')
           end
         end
       end
     end
 
-    return elem
+    return [standard, query]
   end
 
   #Returns a [seq_sans_inserts, [list of inserts]]
   def self.remove_inserts(elem)
-    seq = '' + elem[1]
+    return remove_insertions_from_query(elem[1])
+  end
+
+  def self.remove_insertions_from_query(query)
+    seq = '' + query
     inserts = []
     
     insert_list = []
-    0.upto(elem[0].size() - 1) do |i|
-      insert_list << i if(elem[0][i,1] == '-')
+    0.upto(standard.size() - 1) do |i|
+      insert_list << i if(standard[i,1] == '-')
     end
     
     big_insert_list = []
-    if(elem[0].include?('-'))#Inserts first
+    if(standard.include?('-'))#Inserts first
       #First step should be to cluster inserts
       cur_ins = nil
       prev_i = nil
@@ -482,7 +409,7 @@ module CfeGotoh
     big_insert_list.each do |ins|
       ins_seq = ''
       ins.each do |i|
-        ins_seq += elem[1][i,1]
+        ins_seq += query[i,1]
       end
       inserts << [((ins[0] - offset) / 3), ins_seq]
       offset += ins.size()

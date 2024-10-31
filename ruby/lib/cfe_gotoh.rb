@@ -4,6 +4,12 @@ require 'cfe_gotoh/cfe_gotoh'
 
 
 module CfeGotoh
+  class Error < RuntimeError
+  end
+
+  class GapMergeError < Error
+  end
+
   def _build_substitution_matrix
     sub_matrix = Array.new(127) {Array.new(127) {-1.0} }
     ['A','T','G','C','R','Y','K','M','B','D','H','V','S','W','N'].each do |nuc|
@@ -160,6 +166,54 @@ module CfeGotoh
     end
   end
 
+  def self.cluster_gaps(gaps, raise_errors=false)
+    # Merge adjacent gaps if they are not a codon-sized gap.
+    new_gap_list = []
+    gaps.each_with_index do |gap, i|
+      next if(gap.size() == 0)  # we already ate this one
+      if(gap.size() % 3 == 0)  # this gap is fine!
+        new_gap_list << gap
+        next 
+      end
+      
+      gap2 = gaps[i + 1]
+      gap3 = gaps[i + 2]
+      # Can I merge with the next gap?
+      if (gap2 and (gap + gap2).size() % 3 == 0 and (gap2.first - gap.last) < 9)
+        if(gap2.size() > gap.size())
+          new_gap_list <<  ((gap2.first - gap.size()) .. gap2.first - 1).to_a() + gap2
+        else
+          new_gap_list <<  gap + ((gap.last + 1) .. (gap.last + gap2.size())).to_a()
+        end
+        gaps[i + 1] = []
+      # Can I merge with the next two gaps?
+      elsif(
+        gap2 and gap3 and
+        (gap + gap2 + gap3).size() % 3 == 0 and
+        (gap3.first - gap.last) < 12
+      )
+        # Place the gap around the middle of the three merging gaps.
+        new_gap = (
+            (gap2.first - gap.size()) .. gap2.first - 1.to_a()
+            + gap2
+            + ((gap2.last + 1) .. (gap2.last + gap3.size())).to_a()
+          )
+          new_gap_list << new_gap
+        
+        gaps[i + 1] = []
+        gaps[i + 2] = []
+      else
+        # We can't merge the gaps; either raise an error or meekly proceed.
+        if (raise_errors)
+          raise GapMergeError
+        else
+          new_gap_list << gap  # FIXME this behaviour differs between insertions and deletions
+        end
+      end
+    end
+    return new_gap_list
+  end
+
 
   #common_insert_locations is based on amino acid locations starting at base 0.
   #Assumes standard in the first base.
@@ -192,55 +246,26 @@ module CfeGotoh
     merge_insertions_and_deletions_to_fix_oof_sequences(standard, query)
 
     if(standard.gsub(/[^-]/,'').size() % 3 != 0 and raise_errors)
-      raise "Can not frame align, #{standard.gsub(/[^-]/,'').size()} inserted bases not divisible by 3"
+      raise "Cannot frame align, #{standard.gsub(/[^-]/,'').size()} inserted bases not divisible by 3"
     end
     if(query.gsub(/[^-]/,'').size() % 3 != 0 and raise_errors)
-      raise "Can not frame align, #{query.gsub(/[^-]/,'').size()} deleted bases not divisible by 3"
+      raise "Cannot frame align, #{query.gsub(/[^-]/,'').size()} deleted bases not divisible by 3"
     end
     
-    #Build the insert/delete lists.
+    # Build the insert/delete lists.  These lists look like 
+    # [[3,4,5], [9], [11,12]]
     insert_list = make_gap_list(standard)
     delete_list = make_gap_list(query)
-    #Now we have a list that looks like [[3,4,5], [9], [11,12]]
     
-    if(insert_list.size() > 0)#Inserts first
+    # Process the insertions.
+    if(insert_list.size() > 0)
       new_ins_list = []
       
-      #First step is clustering insertions. (v2:  16-Nov-2018)
-      insert_list.each_with_index do |ins, i|
-        next if(ins.size() == 0) #we already ate this one.
-        if(ins.size() % 3 == 0) #this insertion is fine!
-          new_ins_list << ins
-          next 
-        end
-        
-        #Can I merge with the next insert?
-        if(insert_list[i + 1] and (ins + insert_list[i + 1]).size() % 3 == 0 and
-          (insert_list[i + 1].first - ins.last) < 9)  
-          
-          ins2 = insert_list[i + 1]
-          if(ins2.size() > ins.size())
-            new_ins_list <<  ((ins2.first - ins.size()) .. ins2.first - 1).to_a() + ins2
-          else
-            new_ins_list <<  ins + ((ins.last + 1) .. (ins.last + ins2.size())).to_a()
-          end
-          insert_list[i + 1] = []
-        #maybe merge with the next two inserts?
-        elsif(insert_list[i + 1] and insert_list[i + 2] and
-          (ins + insert_list[i + 1] + insert_list[i + 2]).size() % 3 == 0 and
-          (insert_list[i + 2].first - ins.last) < 12) 
-          
-          ins2 = insert_list[i + 1]
-          ins3 = insert_list[i + 2]
-          if(true) #Lets just assume that if you need to combine 3 inserts, the middle one is where it goes.
-            new_ins_list << ((ins2.first - ins.size()) .. ins2.first - 1).to_a() + ins2 + ((ins2.last + 1) .. (ins2.last + ins3.size())).to_a()
-          end
-          
-          insert_list[i + 1] = []
-          insert_list[i + 2] = []
-        else #No merge, life sucks and then you die.
-          raise "Can not frame align insert" if(raise_errors)
-        end
+      # Step 1: cluster the insertions.
+      begin
+        new_ins_list = cluster_gaps(insert_list, raise_errors=raise_errors))
+      rescue GapMergeError
+        raise "Cannot frame align insert" if raise_errors
       end
       
       #second step should be to frame align inserts (prioritizing to common_points)
@@ -297,42 +322,9 @@ module CfeGotoh
       new_del_list = []
       next_del = nil
       
-      #First step is clustering deletions. (v2:  19-Nov-2018)
-      delete_list.each_with_index do |del, i|
-        next if(del.size() == 0) #we already ate this one.
-        if(del.size() % 3 == 0) #this insertion is fine!
-          new_del_list << del
-          next 
-        end
-        
-        #Can I merge with the next delete?
-        if(delete_list[i + 1] and (del + delete_list[i + 1]).size() % 3 == 0 and
-          (delete_list[i + 1].first - del.last) < 9)  
-          
-          del2 = delete_list[i + 1]
-          if(del2.size() > del.size())
-            new_del_list <<  ((del2.first - del.size()) .. del2.first - 1).to_a() + del2
-          else
-            new_del_list <<  del + ((del.last + 1) .. (del.last + del2.size())).to_a()
-          end
-          delete_list[i + 1] = []
-        #maybe merge with the next two deletes?
-        elsif(delete_list[i + 1] and delete_list[i + 2] and
-          (del + delete_list[i + 1] + delete_list[i + 2]).size() % 3 == 0 and
-          (delete_list[i + 2].first - del.last) < 12)  #slightly higher range, since we've already got a higher threshold of confidence here
-          
-          del2 = delete_list[i + 1]
-          del3 = delete_list[i + 2]
-          if(true) #Lets just assume that if you need to combine 3 deletes, the middle one is where it goes.
-            new_del_list << ((del2.first - del.size()) .. del2.first - 1).to_a() + del2 + ((del2.last + 1) .. (del2.last + del3.size())).to_a()
-          end
-          
-          delete_list[i + 1] = []
-          delete_list[i + 2] = []
-        else #No merge, life sucks and then you die.
-          new_del_list << delete_list[i]
-        end
-      end
+      # As above, step 1 is to cluster the deletions.  Note that this behaviour 
+      # differs from how we handle the insertions!
+      new_del_list = cluster_gaps(delete_list, raise_errors=false)
       
       #second step should be to frame align deletes 
       offset = 0 #offset created by previous deletions. (IMPORTANT)

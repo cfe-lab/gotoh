@@ -1,0 +1,9 @@
+source 'https://rubygems.org'
+ruby '2.2.2'
+
+# To install all these gems, run "gem install bundler", then "bundle install".
+
+gem 'minitest-reporters'
+gem 'simplecov', '0.17.1'
+gem 'simplecov-lcov', '0.7.0'
+gem 'simplecov-cobertura', '1.4.2'

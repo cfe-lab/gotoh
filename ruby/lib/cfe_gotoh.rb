@@ -10,53 +10,53 @@ module CfeGotoh
   class GapMergeError < Error
   end
 
-  def _build_substitution_matrix
-    sub_matrix = Array.new(127) {Array.new(127) {-1.0} }
-    ['A','T','G','C','R','Y','K','M','B','D','H','V','S','W','N'].each do |nuc|
-      sub_matrix[nuc.ord()][nuc.ord()] = 1.0
-      sub_matrix[nuc.ord()]['X'.ord()]=sub_matrix['X'.ord()][nuc.ord()]=-6.0 if(nuc !='N')
-    end
-    #bi-mixtures
-    sub_matrix['A'.ord()]['R'.ord()]=sub_matrix['R'.ord()]['A'.ord()]=1.0
-    sub_matrix['G'.ord()]['R'.ord()]=sub_matrix['R'.ord()]['G'.ord()]=1.0
-    sub_matrix['C'.ord()]['Y'.ord()]=sub_matrix['Y'.ord()]['C'.ord()]=1.0
-    sub_matrix['T'.ord()]['Y'.ord()]=sub_matrix['Y'.ord()]['T'.ord()]=1.0
-    sub_matrix['G'.ord()]['K'.ord()]=sub_matrix['K'.ord()]['G'.ord()]=1.0
-    sub_matrix['T'.ord()]['K'.ord()]=sub_matrix['K'.ord()]['T'.ord()]=1.0
-    sub_matrix['C'.ord()]['M'.ord()]=sub_matrix['M'.ord()]['C'.ord()]=1.0
-    sub_matrix['A'.ord()]['M'.ord()]=sub_matrix['M'.ord()]['A'.ord()]=1.0
-    sub_matrix['C'.ord()]['S'.ord()]=sub_matrix['S'.ord()]['C'.ord()]=1.0
-    sub_matrix['G'.ord()]['S'.ord()]=sub_matrix['S'.ord()]['G'.ord()]=1.0
-    sub_matrix['T'.ord()]['W'.ord()]=sub_matrix['W'.ord()]['T'.ord()]=1.0
-    sub_matrix['A'.ord()]['W'.ord()]=sub_matrix['W'.ord()]['A'.ord()]=1.0
-    #tri-mixtures
-    sub_matrix['C'.ord()]['B'.ord()]=sub_matrix['B'.ord()]['C'.ord()]=1.0
-    sub_matrix['G'.ord()]['B'.ord()]=sub_matrix['B'.ord()]['G'.ord()]=1.0
-    sub_matrix['T'.ord()]['B'.ord()]=sub_matrix['B'.ord()]['T'.ord()]=1.0
-    sub_matrix['A'.ord()]['D'.ord()]=sub_matrix['D'.ord()]['A'.ord()]=1.0
-    sub_matrix['G'.ord()]['D'.ord()]=sub_matrix['D'.ord()]['G'.ord()]=1.0
-    sub_matrix['T'.ord()]['D'.ord()]=sub_matrix['D'.ord()]['T'.ord()]=1.0
-    sub_matrix['A'.ord()]['H'.ord()]=sub_matrix['H'.ord()]['A'.ord()]=1.0
-    sub_matrix['C'.ord()]['H'.ord()]=sub_matrix['H'.ord()]['C'.ord()]=1.0
-    sub_matrix['T'.ord()]['H'.ord()]=sub_matrix['H'.ord()]['T'.ord()]=1.0
-    sub_matrix['A'.ord()]['V'.ord()]=sub_matrix['V'.ord()]['A'.ord()]=1.0
-    sub_matrix['C'.ord()]['V'.ord()]=sub_matrix['V'.ord()]['C'.ord()]=1.0
-    sub_matrix['G'.ord()]['V'.ord()]=sub_matrix['V'.ord()]['G'.ord()]=1.0
-    #other
-    sub_matrix['$'.ord()]['$'.ord()]=50.0
-    sub_matrix['T'.ord()]['U'.ord()] = sub_matrix['U'.ord()]['T'.ord()] = 1.0
-    sub_matrix['N'.ord()]['N'.ord()] = 0.0
-    sub_matrix['X'.ord()]['-'.ord()]=sub_matrix['X'.ord()]['-'.ord()]=3.0
-    ['A','T','G','C'].each do |ch|
-      sub_matrix[ch.ord()]['*'.ord()]=sub_matrix['*'.ord()][ch.ord()]=1.0
-      sub_matrix[ch.ord()]['&'.ord()]=sub_matrix['&'.ord()][ch.ord()]=0.7
-      sub_matrix[ch.ord()]['$'.ord()]=sub_matrix['$'.ord()][ch.ord()]=0.0
-      sub_matrix[ch.ord()]['.'.ord()]=sub_matrix['.'.ord()][ch.ord()]=-20.0
-      sub_matrix[ch.ord()]['N'.ord()]=sub_matrix['N'.ord()][ch.ord()]=-3.0
-    end
+  sub_matrix = Array.new(127) {Array.new(127) {-1.0} }
+  ['A','T','G','C','R','Y','K','M','B','D','H','V','S','W','N'].each do |nuc|
+    sub_matrix[nuc.ord()][nuc.ord()] = 1.0
+    sub_matrix[nuc.ord()]['X'.ord()]=sub_matrix['X'.ord()][nuc.ord()]=-6.0 if(nuc !='N')
   end
+  #bi-mixtures
+  sub_matrix['A'.ord()]['R'.ord()]=sub_matrix['R'.ord()]['A'.ord()]=1.0
+  sub_matrix['G'.ord()]['R'.ord()]=sub_matrix['R'.ord()]['G'.ord()]=1.0
+  sub_matrix['C'.ord()]['Y'.ord()]=sub_matrix['Y'.ord()]['C'.ord()]=1.0
+  sub_matrix['T'.ord()]['Y'.ord()]=sub_matrix['Y'.ord()]['T'.ord()]=1.0
+  sub_matrix['G'.ord()]['K'.ord()]=sub_matrix['K'.ord()]['G'.ord()]=1.0
+  sub_matrix['T'.ord()]['K'.ord()]=sub_matrix['K'.ord()]['T'.ord()]=1.0
+  sub_matrix['C'.ord()]['M'.ord()]=sub_matrix['M'.ord()]['C'.ord()]=1.0
+  sub_matrix['A'.ord()]['M'.ord()]=sub_matrix['M'.ord()]['A'.ord()]=1.0
+  sub_matrix['C'.ord()]['S'.ord()]=sub_matrix['S'.ord()]['C'.ord()]=1.0
+  sub_matrix['G'.ord()]['S'.ord()]=sub_matrix['S'.ord()]['G'.ord()]=1.0
+  sub_matrix['T'.ord()]['W'.ord()]=sub_matrix['W'.ord()]['T'.ord()]=1.0
+  sub_matrix['A'.ord()]['W'.ord()]=sub_matrix['W'.ord()]['A'.ord()]=1.0
+  #tri-mixtures
+  sub_matrix['C'.ord()]['B'.ord()]=sub_matrix['B'.ord()]['C'.ord()]=1.0
+  sub_matrix['G'.ord()]['B'.ord()]=sub_matrix['B'.ord()]['G'.ord()]=1.0
+  sub_matrix['T'.ord()]['B'.ord()]=sub_matrix['B'.ord()]['T'.ord()]=1.0
+  sub_matrix['A'.ord()]['D'.ord()]=sub_matrix['D'.ord()]['A'.ord()]=1.0
+  sub_matrix['G'.ord()]['D'.ord()]=sub_matrix['D'.ord()]['G'.ord()]=1.0
+  sub_matrix['T'.ord()]['D'.ord()]=sub_matrix['D'.ord()]['T'.ord()]=1.0
+  sub_matrix['A'.ord()]['H'.ord()]=sub_matrix['H'.ord()]['A'.ord()]=1.0
+  sub_matrix['C'.ord()]['H'.ord()]=sub_matrix['H'.ord()]['C'.ord()]=1.0
+  sub_matrix['T'.ord()]['H'.ord()]=sub_matrix['H'.ord()]['T'.ord()]=1.0
+  sub_matrix['A'.ord()]['V'.ord()]=sub_matrix['V'.ord()]['A'.ord()]=1.0
+  sub_matrix['C'.ord()]['V'.ord()]=sub_matrix['V'.ord()]['C'.ord()]=1.0
+  sub_matrix['G'.ord()]['V'.ord()]=sub_matrix['V'.ord()]['G'.ord()]=1.0
+  #other
+  sub_matrix['$'.ord()]['$'.ord()]=50.0
+  sub_matrix['T'.ord()]['U'.ord()] = sub_matrix['U'.ord()]['T'.ord()] = 1.0
+  sub_matrix['N'.ord()]['N'.ord()] = 0.0
+  sub_matrix['X'.ord()]['-'.ord()]=sub_matrix['X'.ord()]['-'.ord()]=3.0
+  ['A','T','G','C'].each do |ch|
+    sub_matrix[ch.ord()]['*'.ord()]=sub_matrix['*'.ord()][ch.ord()]=1.0
+    sub_matrix[ch.ord()]['&'.ord()]=sub_matrix['&'.ord()][ch.ord()]=0.7
+    sub_matrix[ch.ord()]['$'.ord()]=sub_matrix['$'.ord()][ch.ord()]=0.0
+    sub_matrix[ch.ord()]['.'.ord()]=sub_matrix['.'.ord()][ch.ord()]=-20.0
+    sub_matrix[ch.ord()]['N'.ord()]=sub_matrix['N'.ord()][ch.ord()]=-3.0
+  end
+  sub_matrix.each {|column| column.freeze}
+  sub_matrix.freeze
 
-  NUCLEOTIDE_MATRIX = self._build_substitution_matrix().freeze
+  NUCLEOTIDE_MATRIX = sub_matrix
 
   def self.score_alignment(standard, query)
     sc = 0.0
@@ -65,7 +65,6 @@ module CfeGotoh
     end
     return sc
   end
-
 
   def self.make_gap_list(seq)
     list = []
@@ -173,10 +172,10 @@ module CfeGotoh
       next if(gap.size() == 0)  # we already ate this one
       if(gap.size() % 3 == 0)  # this gap is fine!
         new_gap_list << gap
-        next 
+        next
       end
       
-      gap2 = gaps[i + 1]
+      gap2 = gaps[i + 1]  # note: these could be nil, which we test for below
       gap3 = gaps[i + 2]
       # Can I merge with the next gap?
       if (gap2 and (gap + gap2).size() % 3 == 0 and (gap2.first - gap.last) < 9)
@@ -194,11 +193,11 @@ module CfeGotoh
       )
         # Place the gap around the middle of the three merging gaps.
         new_gap = (
-            (gap2.first - gap.size()) .. gap2.first - 1.to_a()
-            + gap2
-            + ((gap2.last + 1) .. (gap2.last + gap3.size())).to_a()
-          )
-          new_gap_list << new_gap
+          (gap2.first - gap.size()) .. gap2.first - 1.to_a()
+          + gap2
+          + ((gap2.last + 1) .. (gap2.last + gap3.size())).to_a()
+        )
+        new_gap_list << new_gap
         
         gaps[i + 1] = []
         gaps[i + 2] = []
@@ -214,6 +213,65 @@ module CfeGotoh
     return new_gap_list
   end
 
+  def self.align_gaps_to_frame(gaps, common_gap_locations=nil)
+    # Align gaps to codon boundaries, giving preference to common 
+    # gap locations if specified.
+    
+    offset = 0  # offset created by previous gaps.
+    gaps.each do |gap|
+      # See if this gap is close to a common gap location (within 3 amino acids).
+      if (!common_gap_locations.nil?)
+        closest_common = common_gap_locations.min() do |a,b|
+          (3 * a - (gap[0] - offset)).abs() <=> (3 * b - (gap[0] - offset)).abs()
+        end
+        if(closest_common != nil and (3 * closest_common - (gap[0] - offset)).abs() <= 9)
+          # Align the gap to this position.
+          new_gap = []
+          0.upto(gap.size() - 1) do |i|
+            new_gap << 3 * closest_common + i + offset
+          end
+          gap.replace(new_gap)
+        end
+      end
+      
+      # Align the gap to the nearest appropriate frame.
+      # Original comment from Conan: scoring would be good here
+      if(gap[0] % 3 == 1)  # set back one base
+        new_gap = []
+        gap.each do |i|
+          new_gap << i - 1
+        end
+        gap.replace(new_gap)
+      elsif(gap[0] % 3 == 2)  # set forward one base
+        new_gap = []
+        gap.each do |i|
+          new_gap << i + 1
+        end
+        gap.replace(new_gap)
+      end
+      
+      offset += gap.size()
+    end
+    return gaps
+  end
+
+  def self.splice_gaps_into_sequence(seq, gaps)
+    # Place the specified gaps into the sequence.  Note that the
+    # gaps are specified by their positions in an *aligned* sequence,
+    # and as such include "offsets" introduced by gaps placed earlier
+    # in the sequence.  The gaps must be in left-to-right order.
+    seq = seq.gsub('-','')
+    gaps.each do |gap|
+      gap.each do |i|
+        if(i > seq.size())
+          seq.insert(-1, '-')
+        else
+          seq.insert(i, '-')
+        end
+      end
+    end
+    return seq
+  end
 
   #common_insert_locations is based on amino acid locations starting at base 0.
   #Assumes standard in the first base.
@@ -223,11 +281,14 @@ module CfeGotoh
     query,
     gap_init=3,
     gap_penalty=1,
-    common_insert_locations=[],
+    common_insert_locations=nil,
     trim=false,
     raise_errors=false,
     prealigned=false
   )
+    if (common_insert_locations.nil?)
+      common_insert_locations = []
+    end
     if(!prealigned)
       elem = align_it(standard, query, gap_init, gap_penalty)
       standard = elem[0]
@@ -263,103 +324,39 @@ module CfeGotoh
       
       # Step 1: cluster the insertions.
       begin
-        new_ins_list = cluster_gaps(insert_list, raise_errors=raise_errors))
+        new_ins_list = cluster_gaps(insert_list, raise_errors=raise_errors)
       rescue GapMergeError
         raise "Cannot frame align insert" if raise_errors
       end
       
-      #second step should be to frame align inserts (prioritizing to common_points)
-      offset = 0 #offset created by previous insertions. (IMPORTANT)
-      new_ins_list.each do |ins|
-        #see if its close to a common_insert(within 3 amino acids?)
-        min_common = common_insert_locations.min(){|a,b| ((a) * 3 - (ins[0] - offset)).abs() <=> ((b) * 3 - ins[0]).abs()}
-        if(min_common != nil and ((min_common ) * 3 - (ins[0] - offset)).abs() <= 9)
-          #Cool, align to this common insert
-          new_ins = []
-          0.upto(ins.size() - 1) do |i|
-            new_ins << ((min_common) * 3) + i + offset
-          end
-          ins.replace(new_ins)
-        end
-        
-        #B frame align 
-        #scoring would be good here
-        if(ins[0] % 3 == 1) #set back one base
-          new_ins = []
-          ins.each do |i|
-            new_ins << i - 1
-          end
-          ins.replace(new_ins)
-        elsif(ins[0] % 3 == 2) #Set forward one base.
-          new_ins = []
-          ins.each do |i|
-            new_ins << i + 1
-          end
-          ins.replace(new_ins)
-        end
-        
-        offset += ins.size()
-      end
+      # Step 2: frame-align the insertions, shifting things to common insertion
+      # positions where appropriate.
+      align_gaps_to_frame(new_ins_list, common_gap_locations=common_insert_locations)
 
-      #make the actual modifications
-      #begin
-      #orige = "" + standard
-      standard = standard.gsub('-','')
-      new_ins_list.each do |ins|
-        ins.each do |i|
-          if(i > standard.size())
-            standard.insert(-1, '-')
-          else
-            standard.insert(i, '-')
-          end
-        end
-      end
+      # Put the insertions back into the standard.
+      standard = splice_gaps_into_sequence(standard, new_ins_list)
     end
     
-    #Deletion---------------------------------------------------------------------------------------------------
-    outta_frame = false
-    if(delete_list.size() > 0)#Deletions second
+    # Process the deletions.
+    if(delete_list.size() > 0)
       new_del_list = []
-      next_del = nil
       
-      # As above, step 1 is to cluster the deletions.  Note that this behaviour 
-      # differs from how we handle the insertions!
-      new_del_list = cluster_gaps(delete_list, raise_errors=false)
-      
-      #second step should be to frame align deletes 
-      offset = 0 #offset created by previous deletions. (IMPORTANT)
-      new_del_list.each do |del|
-        next if(del.size() % 3 != 0)
-        #frame align 
-        #scoring would be good here
-        if(del[0] % 3 == 1) #set back one base
-          new_del = []
-          del.each do |i|
-            new_del << i - 1
-          end
-          del.replace(new_del)
-        elsif(del[0] % 3 == 2) #Set forward one base.
-          new_del = []
-          del.each do |i|
-            new_del << i + 1
-          end
-          del.replace(new_del)
-        end
-        
-        offset += del.size()
+      # As above, step 1 is to cluster the deletions.
+      # FIXME note that the original code behaved differently between
+      # insertions and deletions; confirm that this is the right
+      # way forward.
+      begin
+        new_del_list = cluster_gaps(delete_list, raise_errors=raise_errors)
+      rescue GapMergeError
+        raise "Cannot frame align deletion" if raise_errors
       end
       
-      #make the actual modifications
-      query = query.gsub('-','')
-      new_del_list.each do |del|
-        del.each do |i|
-          if(i > query.size() )
-            query.insert(query.size(), '-')
-          else
-            query.insert(i, '-')
-          end
-        end
-      end
+      # Again as above, frame-align the deletions; this time
+      # we don't worry about any common deletion positions.
+      align_gaps_to_frame(new_del_list)
+
+      # Put the deletions back into the query.
+      query = splice_gaps_into_sequence(query, new_del_list)
     end
 
     return [standard, query]

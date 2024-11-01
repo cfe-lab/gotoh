@@ -1,4 +1,4 @@
 require "mkmf"
 
 create_header
-create_makefile('gotoh/gotoh')
+create_makefile('cfe_gotoh/cfe_gotoh')

@@ -216,12 +216,13 @@ module CfeGotoh
   def self.align_gaps_to_frame(gaps, common_gap_locations=nil)
     # Align gaps to codon boundaries, giving preference to common 
     # gap locations if specified.
+    # Gaps must be listed in ascending order, i.e. from left to right.
     
     offset = 0  # offset created by previous gaps.
     gaps.each do |gap|
       # See if this gap is close to a common gap location (within 3 amino acids).
       if (!common_gap_locations.nil?)
-        closest_common = common_gap_locations.min() do |a,b|
+        closest_common = common_gap_locations.min() do |a, b|
           (3 * a - (gap[0] - offset)).abs() <=> (3 * b - (gap[0] - offset)).abs()
         end
         if(closest_common != nil and (3 * closest_common - (gap[0] - offset)).abs() <= 9)

@@ -1,0 +1,11 @@
+require 'rake'
+require 'rake/testtask'
+
+task :default => :test
+
+base_dir = File.expand_path(".")
+
+Rake::TestTask.new do |t|
+    t.libs = [base_dir]
+    t.pattern = "test/**/*_test.rb"
+end

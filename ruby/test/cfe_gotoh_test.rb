@@ -797,6 +797,132 @@ class SpliceGapsIntoSequenceTest < CfeGotohTest
       seq: 'ACT---AAG',
       gaps: [[6, 7, 8]],
       expected: 'ACTAAG---'
+    },
+    {
+      name: 'insert_in_middle_retained',
+      seq: 'ACT---AAG',
+      gaps: [[3, 4, 5]],
+      expected: 'ACT---AAG'
+    },
+    {
+      name: 'insert_in_middle_corrected',
+      seq: 'AC--TA-AG',
+      gaps: [[3, 4, 5]],
+      expected: 'ACT---AAG'
+    },
+    {
+      name: 'offsets_accounted_for',
+      seq: 'AACAT---GGG---G',
+      gaps: [[3, 4, 5], [9, 10, 11]],
+      expected: 'AAC---ATG---GGG'
+    },
+    {
+      name: 'typical_case',
+      seq: '---AACAT---GGG---G------',
+      gaps: [[0, 1, 2], [3, 4, 5], [9, 10, 11], [15, 16, 17]],
+      expected: '---AAC---ATG---GGG---'
     }
   ]
+
+  SPLICE_GAPS_TEST_CASES.each do |test_entry|
+    define_method("test_#{test_entry[:name]}") do
+      assert_equal(
+        test_entry[:expected],
+        CfeGotoh.splice_gaps_into_sequence(test_entry[:seq], test_entry[:gaps])
+      )
+    end
+  end
+end
+
+
+class FrameAlignTest < CfeGotohTest
+  def test_bad_inserted_bases_error
+    std = 'ACGTACGT-ACGT'
+    query = 'ACGTACGTAACGT'
+    assert_raises RuntimeError do
+      CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
+    end)
+  end
+
+  def test_bad_inserted_bases_error
+    std = 'ACGTACGTAACGT'
+    query = 'ACGTACGT-ACGT'
+    assert_raises RuntimeError do
+      CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
+    end)
+  end
+
+  def test_edges_are_trimmed
+    std = '------ACGTACGTACGT------'
+    query = '-------CGTACGTAC--------'
+
+    result = CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
+    assert_equal 'ACGTACGTACGT', result[0]
+    assert_equal '---TACGTA---', result[1]
+  end
+
+  def test_indels_are_merged
+    std = 'ACGT-ACGTACGT'
+    query = 'ACGTAC-GTACGT'
+    result = CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
+    expected = 'ACGTACGTACGT'
+    assert_equal expected, result[0]
+    assert_equal expected, result[1]
+  end
+
+  def test_insertions_are_clustered
+    std = 'ACG--TA-CGTACGT'
+    query = 'ACGGTAAACGTACGT'
+    result = CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
+    expected_std = 'ACG---TACGTACGT'
+    expected_query = 'ACGGTAAACGTACGT'
+    assert_equal expected_std, result[0]
+    assert_equal expected_query, result[1]
+  end
+
+  def test_deletions_are_clustered
+    std = 'ACGGGTAACGTACGT'
+    query = 'ACG--T-ACGTACGT'
+    result = CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
+    expected_std = 'ACGGTAAACGTACGT'
+    expected_query = 'ACG---TACGTACGT'
+    assert_equal expected_std, result[0]
+    assert_equal expected_query, result[1]
+  end
+
+  def test_unmerged_inserts_raise_error
+    std = 'ACG--TACGTACGTAC-GT'
+    query = 'ACGGGTACGTACGTACCGT'
+    assert_raises RuntimeError do
+      CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
+    end
+  end
+
+  def test_unmerged_deletions_raise_error
+    std = 'ACGGGTACGTACGTACCGT'
+    query = 'ACG--TACGTACGTAC-GT'
+    assert_raises RuntimeError do
+      CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
+    end
+  end
+
+  def test_insertions_are_frame_aligned
+    std = 'ACGT---ACGTACGT'
+    query = 'ACGTTTTACGTACGT'
+    result = CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
+    expected_std = 'ACG---TACGTACGT'
+    expected_query = 'ACGTTTTACGTACGT'
+    assert_equal expected_std, result[0]
+    assert_equal expected_query, result[1]
+  end
+
+  def test_deletions_are_frame_aligned
+    std = 'ACGTTTTACGTACGT'
+    query = 'ACGT---ACGTACGT'
+    result = CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
+    expected_std = 'ACGTTTTACGTACGT'
+    expected_query = 'ACG---TACGTACGT'
+    assert_equal expected_std, result[0]
+    assert_equal expected_query, result[1]
+  end
 end

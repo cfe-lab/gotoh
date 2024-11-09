@@ -24,6 +24,7 @@ Minitest::Reporters.use! [
   Minitest::Reporters::SpecReporter.new,
   Minitest::Reporters::JUnitReporter.new,
   Minitest::Reporters::HtmlReporter.new(
-    :title => "hivdb_algorithm Test Report #{run_id}",
-    :erb_template => File.join(File.dirname(__FILE__), "templates/index.html.erb"))
+    :title => "cfe_gotoh Test Report #{run_id}",
+    :erb_template => File.join(File.dirname(__FILE__), "templates/index.html.erb")
+  )
 ]

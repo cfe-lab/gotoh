@@ -9,17 +9,17 @@ end
 class ScoreAlignmentTest < CfeGotohTest
   REGULAR_BASES = ['A', 'C', 'G', 'T'].freeze
   MIXTURES = {
-    'R': ['A', 'G'],
-    'Y': ['C', 'T'],
-    'S': ['G', 'C'],
-    'W': ['A', 'T'],
-    'K': ['G', 'T'],
-    'M': ['A', 'C'],
-    'B': ['C', 'G', 'T'],
-    'D': ['A', 'G', 'T'],
-    'H': ['A', 'C', 'T'],
-    'V': ['A', 'C', 'G'],
-    'N': ['A', 'C', 'G', 'T']
+    'R' => ['A', 'G'],
+    'Y' => ['C', 'T'],
+    'S' => ['G', 'C'],
+    'W' => ['A', 'T'],
+    'K' => ['G', 'T'],
+    'M' => ['A', 'C'],
+    'B' => ['C', 'G', 'T'],
+    'D' => ['A', 'G', 'T'],
+    'H' => ['A', 'C', 'T'],
+    'V' => ['A', 'C', 'G'],
+    'N' => ['A', 'C', 'G', 'T']
   }.freeze
 
   def score_alignment_symmetric_test(expected, base1, base2)
@@ -34,7 +34,7 @@ class ScoreAlignmentTest < CfeGotohTest
         if (std_base == query_base)
           expected = 1.0
         end
-        assert_equal expected, CfeGotoh.score_alignment(std_base, query_base)
+        score_alignment_symmetric_test(expected, std_base, query_base)
       end
     end
   end
@@ -45,8 +45,11 @@ class ScoreAlignmentTest < CfeGotohTest
         expected = -1.0
         if (std_base == query_base)
           expected = 1.0
+          if (std_base == 'N')
+            expected = 0.0
+          end
         end
-        assert_equal expected, CfeGotoh.score_alignment(std_base, query_base)
+        score_alignment_symmetric_test(expected, std_base, query_base)
       end
     end
   end
@@ -66,7 +69,7 @@ class ScoreAlignmentTest < CfeGotohTest
   end
 
   def test_score_x
-    (REGULAR_BASES + MIXTURES).each do |base|
+    (REGULAR_BASES + MIXTURES.keys()).each do |base|
       expected = -6.0
       if (base == 'N')
         expected = -1.0
@@ -155,35 +158,35 @@ class TrimLeadingDashesTest < CfeGotohTest
       expected_query: 'ACACAT'
     },
     {
-      name: 'one_leading_dash'
+      name: 'one_leading_dash',
       std: '-ACAGAT',
       query: 'GACACAT',
       expected_std: 'ACAGAT',
       expected_query: 'ACACAT'
     },
     {
-      name: 'several_leading_dashes'
+      name: 'several_leading_dashes',
       std: '----ACAGAT',
       query: 'GGGGACACAT',
       expected_std: 'ACAGAT',
       expected_query: 'ACACAT'
     },
     {
-      name: 'no_leading_dashes_other_dashes_ignored'
+      name: 'no_leading_dashes_other_dashes_ignored',
       std: 'ACA---CATGAT-',
       query: 'ACAGGG---CATC',
       expected_std: 'ACA---CATGAT-',
       expected_query: 'ACAGGG---CATC'
     },
     {
-      name: 'one_leading_dash_other_dashes_ignored'
+      name: 'one_leading_dash_other_dashes_ignored',
       std: '-ACA---CATGAT-',
       query: '-ACAGGG---CATC',
       expected_std: 'ACA---CATGAT-',
       expected_query: 'ACAGGG---CATC'
     },
     {
-      name: 'several_leading_dashes_other_dashes_ignored'
+      name: 'several_leading_dashes_other_dashes_ignored',
       std: '----ACA---CATGAT-',
       query: 'GGGGACAGGG---CATC',
       expected_std: 'ACA---CATGAT-',
@@ -213,35 +216,35 @@ class TrimTrailingDashesTest < CfeGotohTest
       expected_query: 'ACACAT'
     },
     {
-      name: 'one_trailing_dash'
+      name: 'one_trailing_dash',
       std: 'ACAGAT-',
       query: 'ACACATG',
       expected_std: 'ACAGAT',
       expected_query: 'ACACAT'
     },
     {
-      name: 'several_trailing_dashes'
+      name: 'several_trailing_dashes',
       std: 'ACAGAT----',
       query: 'ACACATGGGG',
       expected_std: 'ACAGAT',
       expected_query: 'ACACAT'
     },
     {
-      name: 'no_trailing_dashes_other_dashes_ignored'
+      name: 'no_trailing_dashes_other_dashes_ignored',
       std: '-ACA---CATGAT',
       query: 'CACAGGG---CAT',
       expected_std: '-ACA---CATGAT',
       expected_query: 'CACAGGG---CAT'
     },
     {
-      name: 'one_trailing_dash_other_dashes_ignored'
+      name: 'one_trailing_dash_other_dashes_ignored',
       std: '-ACA---CATGAT-',
       query: 'CACAGGG---CATC',
       expected_std: '-ACA---CATGAT',
       expected_query: 'CACAGGG---CAT'
     },
     {
-      name: 'several_trailing_dashes_other_dashes_ignored'
+      name: 'several_trailing_dashes_other_dashes_ignored',
       std: '-ACA---CATGAT----',
       query: 'CACAGGG---CATCGGC',
       expected_std: '-ACA---CATGAT',
@@ -361,7 +364,7 @@ class FixIncompleteEdgeCodonTest < CfeGotohTest
       seq: '------ACT---AGGT-----',
       expected: '------ACT---AGG------',
       side: :trailing
-    },
+    }
   ]
 
   FIX_INCOMPLETE_EDGE_CODON_TEST_CASES.each do |test_entry|
@@ -462,7 +465,7 @@ class MergeInsertionsAndDeletionsToFixOofSequencesTest < CfeGotohTest
       std: 'ACT-AAA',
       query: 'ACTAAA-',
       expected_std: 'ACT-AAA',
-      query: 'ACTAAA-'
+      expected_query: 'ACTAAA-'
     },
     {
       name: 'merges_stop_at_cogent_length',
@@ -514,7 +517,7 @@ class ClusterGapsTest < CfeGotohTest
       name: 'bad_size_gap',
       gaps: [[3, 4, 5, 6]],
       expected: [[3, 4, 5, 6]]
-    }
+    },
     {
       name: 'merge_two_close_gaps_to_first',
       gaps: [[10, 11], [13]],
@@ -553,12 +556,12 @@ class ClusterGapsTest < CfeGotohTest
     {
       name: 'three_gaps_too_far_edge_case',
       gaps: [[8], [12, 13, 14, 15], [20, 21, 22, 23]],
-      expected: [[11, 12, 13, 14, 15, 16, 17, 18, 19]]
+      expected: [[8], [12, 13, 14, 15], [20, 21, 22, 23]]
     },
     {
       name: 'typical_case',
       gaps: [[3, 4, 5], [8, 9], [13], [19, 20, 21, 22, 23, 24], [27], [32], [38, 39, 40, 41], [50, 51], [60], [70], [75, 76]],
-      expected: [[3, 4, 5], [8, 9, 10], [19, 20, 21, 22, 23, 24], [31, 32, 33, 34, 35, 36], [50, 51], [60], [74, 75, 76]]]
+      expected: [[3, 4, 5], [8, 9, 10], [19, 20, 21, 22, 23, 24], [31, 32, 33, 34, 35, 36], [50, 51], [60], [74, 75, 76]]
     }
   ]
 
@@ -570,13 +573,13 @@ class ClusterGapsTest < CfeGotohTest
 
   def test_bad_gap_causes_error
     assert_raises CfeGotoh::GapMergeError do
-      CfeGotoh.cluster_gaps([[3, 4]])
+      CfeGotoh.cluster_gaps([[3, 4]], raise_errors=true)
     end
   end
 
   def test_bad_gap_among_several_gaps_causes_error
     assert_raises CfeGotoh::GapMergeError do
-      CfeGotoh.cluster_gaps([[3, 4, 5], [9, 10, 11, 12, 13, 14], [17]])
+      CfeGotoh.cluster_gaps([[3, 4, 5], [9, 10, 11, 12, 13, 14], [17]], raise_errors=true)
     end
   end
 end
@@ -612,7 +615,7 @@ class AlignGapsToFrameTest < CfeGotohTest
     {
       name: 'two_needing_shifts',
       gaps: [[5, 6, 7, 8, 9, 10], [16, 17, 18]],
-      expected: [[6, 7, 8, 9, 10, 11], [15, 16, 17]]]
+      expected: [[6, 7, 8, 9, 10, 11], [15, 16, 17]]
     },
     {
       name: 'several_in_frame',
@@ -634,7 +637,7 @@ class AlignGapsToFrameTest < CfeGotohTest
 
   WITH_COMMON_POSITIONS_TEST_CASES = [
     {
-      name: 'no_gaps',
+      name: 'no_gaps_with_common',
       gaps: [],
       common: [7, 15],
       expected: []
@@ -673,7 +676,7 @@ class AlignGapsToFrameTest < CfeGotohTest
       name: 'too_far_after_common_edge_case',
       gaps: [[33, 34, 35]],
       common: [7],
-      expected: [[21, 22, 23]]
+      expected: [[33, 34, 35]]
     },
     {
       name: 'too_far_after_common',
@@ -688,28 +691,28 @@ class AlignGapsToFrameTest < CfeGotohTest
       expected: [[45, 46, 47]]
     },
     {
-      name: 'offset_from_first_is_factored_into_second',
+      name: 'offset_from_first_shifted_to_common_is_factored_into_second_shifted_to_common',
       # [57, 58, 59] is at codon 20 of the aligned sequence, which would be
       # at position 54 of the "raw" sequence; this should be just in the 
       # "catchment area" of the common insertion at codon 15.
       gaps: [[15, 16, 17], [57, 58, 59]],
       common: [7, 15],
-      expected: [[21, 22, 23], [45, 46, 47]]
+      expected: [[21, 22, 23], [48, 49, 50]]
     },
     {
-      name: 'offset_from_first_without_common_is_factored_into_second',
+      name: 'offset_from_first_not_shifted_to_common_is_factored_into_second_shifted_to_common',
       gaps: [[4, 5, 6], [57, 58, 59]],
       common: [15],
-      expected: [[3, 4, 5], [45, 46, 47]]
+      expected: [[3, 4, 5], [48, 49, 50]]
     },
     {
-      name: 'offset_from_first_without_shifting_is_factored_into_second',
+      name: 'offset_from_first_without_shifting_is_factored_into_second_shifted_to_common',
       gaps: [[3, 4, 5], [57, 58, 59]],
       common: [15],
-      expected: [[3, 4, 5], [45, 46, 47]]
+      expected: [[3, 4, 5], [48, 49, 50]]
     },
     {
-      name: 'offset_from_first_is_factored_into_second',
+      name: 'offset_from_first_shifted_to_common_is_factored_into_second',
       # Even though [36, 37, 38] is in the "catchment area" of the common
       # insertion at codon 15, that's in the coordinates of the aligned
       # sequence; when the offset is accounted for, it should not be shifted.
@@ -718,22 +721,23 @@ class AlignGapsToFrameTest < CfeGotohTest
       expected: [[21, 22, 23], [36, 37, 38]]
     },
     {
-      name: 'offset_from_first_without_common_is_factored_into_second',
+      name: 'offset_from_first_not_shifted_to_common_is_factored_into_second',
       gaps: [[3, 4, 5], [36, 37, 38]],
       common: [7, 15],
       expected: [[3, 4, 5], [36, 37, 38]]
     },
     {
-      name: 'offset_from_first_without_shifting_is_factored_into_second',
+      name: 'offset_from_first_already_at_common_is_factored_into_second',
       gaps: [[21, 22, 23], [36, 37, 38]],
       common: [7, 15],
       expected: [[21, 22, 23], [36, 37, 38]]
     },
     {
-      name: 'offsets_taken_into_account',
+      name: 'offsets_taken_into_account_in_shifting_to_common',
       gaps: [[3, 4, 5, 6, 7, 8], [36, 37, 38], [111, 112, 113]],
       common: [15, 31],
-      expected: [[3, 4, 5, 6, 7, 8], [36, 37, 38], [93, 94, 95]]
+      # [102, 103, 104] is codon 31 after the 9 base offset
+      expected: [[3, 4, 5, 6, 7, 8], [36, 37, 38], [102, 103, 104]]
     },
     {
       name: 'two_gaps_shifted_to_same_common_position',
@@ -743,9 +747,9 @@ class AlignGapsToFrameTest < CfeGotohTest
     },
     {
       name: 'typical_case',
-      gaps: [[3, 4, 5], [17, 18, 19, 20, 21, 22], [31, 32, 33], [36, 37, 38]],
-      common: [6, 11],
-      expected: [[3, 4, 5], [18, 19, 20, 21, 22, 23], [30, 31, 32], [45, 46, 47]]
+      gaps: [[3, 4, 5], [17, 18, 19, 20, 21, 22], [40, 41, 42], [45, 46, 47]],
+      common: [6, 14],
+      expected: [[3, 4, 5], [21, 22, 23, 24, 25, 26], [39, 40, 41], [54, 55, 56]]
     }
   ]
 
@@ -819,7 +823,7 @@ class SpliceGapsIntoSequenceTest < CfeGotohTest
     {
       name: 'typical_case',
       seq: '---AACAT---GGG---G------',
-      gaps: [[0, 1, 2], [3, 4, 5], [9, 10, 11], [15, 16, 17]],
+      gaps: [[0, 1, 2], [6, 7, 8], [12, 13, 14], [18, 19, 20]],
       expected: '---AAC---ATG---GGG---'
     }
   ]
@@ -841,7 +845,7 @@ class FrameAlignTest < CfeGotohTest
     query = 'ACGTACGTAACGT'
     assert_raises RuntimeError do
       CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
-    end)
+    end
   end
 
   def test_bad_inserted_bases_error
@@ -849,45 +853,7 @@ class FrameAlignTest < CfeGotohTest
     query = 'ACGTACGT-ACGT'
     assert_raises RuntimeError do
       CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
-    end)
-  end
-
-  def test_edges_are_trimmed
-    std = '------ACGTACGTACGT------'
-    query = '-------CGTACGTAC--------'
-
-    result = CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
-    assert_equal 'ACGTACGTACGT', result[0]
-    assert_equal '---TACGTA---', result[1]
-  end
-
-  def test_indels_are_merged
-    std = 'ACGT-ACGTACGT'
-    query = 'ACGTAC-GTACGT'
-    result = CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
-    expected = 'ACGTACGTACGT'
-    assert_equal expected, result[0]
-    assert_equal expected, result[1]
-  end
-
-  def test_insertions_are_clustered
-    std = 'ACG--TA-CGTACGT'
-    query = 'ACGGTAAACGTACGT'
-    result = CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
-    expected_std = 'ACG---TACGTACGT'
-    expected_query = 'ACGGTAAACGTACGT'
-    assert_equal expected_std, result[0]
-    assert_equal expected_query, result[1]
-  end
-
-  def test_deletions_are_clustered
-    std = 'ACGGGTAACGTACGT'
-    query = 'ACG--T-ACGTACGT'
-    result = CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
-    expected_std = 'ACGGTAAACGTACGT'
-    expected_query = 'ACG---TACGTACGT'
-    assert_equal expected_std, result[0]
-    assert_equal expected_query, result[1]
+    end
   end
 
   def test_unmerged_inserts_raise_error
@@ -906,23 +872,176 @@ class FrameAlignTest < CfeGotohTest
     end
   end
 
-  def test_insertions_are_frame_aligned
-    std = 'ACGT---ACGTACGT'
-    query = 'ACGTTTTACGTACGT'
-    result = CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
-    expected_std = 'ACG---TACGTACGT'
-    expected_query = 'ACGTTTTACGTACGT'
-    assert_equal expected_std, result[0]
-    assert_equal expected_query, result[1]
+  PREALIGN_TEST_CASES = [
+    {
+      name: 'edges_are_trimmed',
+      std: '------ACGTACGTACGT------',
+      query: 'AAAAAA-CGTACGTAC--AAAAAA',
+      expected_std: 'ACGTACGTACGT',
+      expected_query: '---TACGTA---'
+    },
+    {
+      name: 'edges_not_trimmed_when_not_specified',
+      std: '------ACGTACGTACGT------',
+      query: 'AAAAAAACGTACGTACGTAAAAAA',
+      trim: false,
+      expected_std: '------ACGTACGTACGT------',
+      expected_query: 'AAAAAAACGTACGTACGTAAAAAA'
+    },
+    {
+      name: 'indels_are_merged',
+      std: 'ACGT-ACGTACGT',
+      query: 'ACGTAC-GTACGT',
+      expected_std: 'ACGTACGTACGT',
+      expected_query: 'ACGTACGTACGT'
+    },
+    {
+      name: 'insertions_are_clustered',
+      std: 'ACG--TA-CGTACGT',
+      query: 'ACGGGTAACGTACGT',
+      expected_std: 'ACG---TACGTACGT',
+      expected_query: 'ACGGGTAACGTACGT'
+    },
+    {
+      name: 'deletions_are_clustered',
+      std: 'ACGGGTAACGTACGT',
+      query: 'ACG--T-ACGTACGT',
+      expected_std: 'ACGGGTAACGTACGT',
+      expected_query: 'ACG---TACGTACGT'
+    },
+    {
+      name: 'insertions_are_frame_aligned',
+      std: 'ACGT---ACGTACGT',
+      query: 'ACGTTTTACGTACGT',
+      expected_std: 'ACG---TACGTACGT',
+      expected_query: 'ACGTTTTACGTACGT'
+    },
+    {
+      name: 'deletions_are_frame_aligned',
+      std: 'ACGTTTTACGTACGT',
+      query: 'ACGT---ACGTACGT',
+      expected_std: 'ACGTTTTACGTACGT',
+      expected_query: 'ACG---TACGTACGT'
+    },
+    {
+      name: 'insertions_moved_to_common_positions',
+      std: 'ACGTTTTACGTACGT',
+      query: 'ACG---TACGTACGT',
+      common_insert_locations: [3],
+      expected_std: 'ACGTTTTACGTACGT',
+      expected_query: 'ACGTACGTA---CGT',
+    }
+  ]
+
+  PREALIGN_TEST_CASES.each do |test_entry|
+    define_method("test_#{test_entry[:name]}") do
+      trim = test_entry[:trim].nil? ? true : false
+      raise_errors = test_entry[:raise_errors].nil? ? true : false
+      result = CfeGotoh.frame_align(
+        test_entry[:std],
+        test_entry[:query],
+        3,
+        1,
+        test_entry[:common_insert_locations],
+        trim,
+        raise_errors,
+        true
+      )
+      assert_equal(test_entry[:expected_std], result[0])
+      assert_equal(test_entry[:expected_query], result[1])
+    end
   end
 
-  def test_deletions_are_frame_aligned
-    std = 'ACGTTTTACGTACGT'
-    query = 'ACGT---ACGTACGT'
-    result = CfeGotoh.frame_align(std, query, 3, 1, nil, false, true, true)
-    expected_std = 'ACGTTTTACGTACGT'
-    expected_query = 'ACG---TACGTACGT'
-    assert_equal expected_std, result[0]
-    assert_equal expected_query, result[1]
+  ALIGNMENT_TEST_CASES = [
+    {
+      name: 'edges_are_trimmed',
+      std: 'ACGTACGTACGT',
+      query: 'CCCCCCACGTACGTACCTAAAAAA',
+      expected_std: 'ACGTACGTACGT',
+      expected_query: 'ACGTACGTACGT'
+    },
+    {
+      name: 'edges_not_trimmed_when_not_specified',
+      std: 'ACGTACGTACGT',
+      query: 'AAAAAAACGTACGTACGTAAAAAA',
+      trim: false,
+      expected_std: '------ACGTACGTACGT------',
+      expected_query: 'AAAAAAACGTACGTACGTAAAAAA'
+    },
+    {
+      # std: ACGTGACGT-ACGT
+      # qry: ACGT-ACGTGACGT
+      name: 'indels_are_merged',
+      std: 'ACGTGACGTACGT',
+      query: 'ACGTACGTGACGT',
+      expected_std: 'ACGTACGTACGT',
+      expected_query: 'ACGTACGTACGT'
+    },
+    {
+      # std: ACG--TA-CGTACGT
+      # qry: ACGCCTATCGTACGT
+      name: 'insertions_are_clustered',
+      std: 'ACGTACGTACGT',
+      query: 'ACGCCTATCGTACGT',
+      expected_std: 'ACG---TACGTACGT',
+      expected_query: 'ACGCCTATCGTACGT'
+    },
+    {
+      # std: ACGCCTATCGTACGT
+      # qry: ACG--TA-CGTACGT
+      name: 'deletions_are_clustered',
+      std: 'ACGCCTAGCGTACGT',
+      query: 'ACGTACGTACGT',
+      expected_std: 'ACGCCTAGCGTACGT',
+      expected_query: 'ACG---TACGTACGT'
+    },
+    {
+      # std: ACGT---ACGTACGT
+      # qry: ACGTCCCACGTACGT
+      name: 'insertions_are_frame_aligned',
+      std: 'ACGTACGTACGT',
+      query: 'ACGTCCCACGTACGT',
+      expected_std: 'ACG---TACGTACGT',
+      expected_query: 'ACGTCCCACGTACGT'
+    },
+    {
+      # std: ACGTCCCACGTACGT
+      # qry: ACGT---ACGTACGT
+      name: 'deletions_are_frame_aligned',
+      std: 'ACGTCCCACGTACGT',
+      query: 'ACGTACGTACGT',
+      expected_std: 'ACGTCCCACGTACGT',
+      expected_query: 'ACG---TACGTACGT'
+    },
+    {
+      # std: ACGTCCCACGTACGT
+      # qry: ACGT---ACGTACGT
+      name: 'insertions_moved_to_common_positions',
+      std: 'ACGTCCCACGTACGT',
+      query: 'ACGTACGTACGT',
+      common_insert_locations: [3],
+      expected_std: 'ACGTCCCACGTACGT',
+      expected_query: 'ACGTACGTA---CGT',
+    }
+  ]
+
+  ALIGNMENT_TEST_CASES.each do |test_entry|
+    define_method("test_#{test_entry[:name]}") do
+      trim = test_entry[:trim].nil? ? true : false
+      raise_errors = test_entry[:raise_errors].nil? ? true : false
+      result = CfeGotoh.frame_align(
+        test_entry[:std],
+        test_entry[:query],
+        3,
+        1,
+        test_entry[:common_insert_locations],
+        trim,
+        raise_errors,
+        false
+      )
+      assert_equal(test_entry[:expected_std], result[0])
+      assert_equal(test_entry[:expected_query], result[1])
+    end
   end
+
 end

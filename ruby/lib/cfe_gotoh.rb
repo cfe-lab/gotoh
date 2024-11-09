@@ -1,6 +1,7 @@
 #TODO:  Scoring algorithm to improve frame_align?
 
-require 'cfe_gotoh/cfe_gotoh'
+# require 'cfe_gotoh/cfe_gotoh'
+require_relative '../ext/cfe_gotoh/cfe_gotoh'
 
 
 module CfeGotoh
@@ -45,7 +46,7 @@ module CfeGotoh
   sub_matrix['$'.ord()]['$'.ord()]=50.0
   sub_matrix['T'.ord()]['U'.ord()] = sub_matrix['U'.ord()]['T'.ord()] = 1.0
   sub_matrix['N'.ord()]['N'.ord()] = 0.0
-  sub_matrix['X'.ord()]['-'.ord()]=sub_matrix['X'.ord()]['-'.ord()]=3.0
+  sub_matrix['X'.ord()]['-'.ord()]=sub_matrix['-'.ord()]['X'.ord()]=3.0
   ['A','T','G','C'].each do |ch|
     sub_matrix[ch.ord()]['*'.ord()]=sub_matrix['*'.ord()][ch.ord()]=1.0
     sub_matrix[ch.ord()]['&'.ord()]=sub_matrix['&'.ord()][ch.ord()]=0.7
@@ -118,18 +119,18 @@ module CfeGotoh
     end
 
     if (query[edge_idx] == '-')
-      dashes = dash_regex.match(query)[0]  # we know there will be a match
+      dashes = dash_regex.match(query)[1]  # we know there will be a match
 
       # If the length of the dashes aren't a multiple of 3, turn some
       # of the query characters into dashes to force it to be a full
       # codon of dashes.
       if (dashes.size() % 3 >= 1)
-        first_non_dash_idx = 0
+        first_non_dash_idx = dashes.size()
         if (side != :leading)
           first_non_dash_idx = query.size() - dashes.size() - 1
         end
         query[first_non_dash_idx] = '-'
-        if (dashes.size() % 3 == 2)
+        if (dashes.size() % 3 == 1)
           query[first_non_dash_idx + incr] = '-'
         end
       end
@@ -193,9 +194,9 @@ module CfeGotoh
       )
         # Place the gap around the middle of the three merging gaps.
         new_gap = (
-          (gap2.first - gap.size()) .. gap2.first - 1.to_a()
-          + gap2
-          + ((gap2.last + 1) .. (gap2.last + gap3.size())).to_a()
+          ((gap2.first - gap.size()) .. gap2.first - 1).to_a() + 
+          gap2 + 
+          ((gap2.last + 1) .. (gap2.last + gap3.size())).to_a()
         )
         new_gap_list << new_gap
         
@@ -301,8 +302,8 @@ module CfeGotoh
     if (trim)
       trim_leading_dashes(standard, query)
       trim_trailing_dashes(standard, query)
-      fix_incomplete_edge_codon(standard, query, :leading)
-      fix_incomplete_edge_codon(standard, query, :trailing)
+      fix_incomplete_edge_codon(query, :leading)
+      fix_incomplete_edge_codon(query, :trailing)
     end
     
     merge_insertions_and_deletions_to_fix_oof_sequences(standard, query)

@@ -381,7 +381,6 @@ class FixIncompleteEdgeCodonTest < CfeGotohTest
 end
 
 
-# class merge_insertions_and_deletions_to_fix_oof_sequences
 class MergeInsertionsAndDeletionsToFixOofSequencesTest < CfeGotohTest
   def test_standard_and_query_must_be_same_length
     assert_raises RuntimeError do
@@ -925,16 +924,32 @@ class FrameAlignTest < CfeGotohTest
     },
     {
       name: 'insertions_moved_to_common_positions',
-      std: 'ACGTTTTACGTACGT',
-      query: 'ACG---TACGTACGT',
+      std: 'ACGT---ACGTACGT',
+      query: 'ACGTTTTACGTACGT',
       common_insert_locations: [3],
-      expected_std: 'ACGTTTTACGTACGT',
-      expected_query: 'ACGTACGTA---CGT',
+      expected_std: 'ACGTACGTA---CGT',
+      expected_query: 'ACGTTTTACGTACGT',
+    },
+    {
+      # The changes that should be made here:
+      # * edges trimmed
+      # * the insertions after position 3 and 4 should be merged
+      # * the deletions at 6-7 and 9 should be merged
+      # * the insertion after 12 should be merged with the deletion at 13
+      # * the insertion after 19 should be frame-aligned by setting back 1 base
+      # * the deletion at 24-26 should be frame-aligned by setting forward 1 base
+      # * the insertion after 36 should be shifted over to common insert location 11
+      name: 'typical_case',
+      std:   '------ACG--T-ACAAGCTA-TCGTACG---TACGCCCTACGTACGTA---CGT------',
+      query: 'AAAAAAACGAATCAC--G-TAG-CGTACGCCCTACG---TACGTACGTATTTCGTAAAAAA',
+      common_insert_locations: [11],
+      expected_std:   'ACG---TACAAGCTATCGTAC---GTACGCCCTACGTAC---GTACGT',
+      expected_query: 'ACGAATCAC---GTAGCGTACGCCCTACGT---ACGTACGTATTTCGT'
     }
   ]
 
   PREALIGN_TEST_CASES.each do |test_entry|
-    define_method("test_#{test_entry[:name]}") do
+    define_method("test_without_alignment_#{test_entry[:name]}") do
       trim = test_entry[:trim].nil? ? true : false
       raise_errors = test_entry[:raise_errors].nil? ? true : false
       result = CfeGotoh.frame_align(
@@ -956,7 +971,7 @@ class FrameAlignTest < CfeGotohTest
     {
       name: 'edges_are_trimmed',
       std: 'ACGTACGTACGT',
-      query: 'CCCCCCACGTACGTACCTAAAAAA',
+      query: 'CCCCCCACGTACGTACGTAAAAAA',
       expected_std: 'ACGTACGTACGT',
       expected_query: 'ACGTACGTACGT'
     },
@@ -969,64 +984,86 @@ class FrameAlignTest < CfeGotohTest
       expected_query: 'AAAAAAACGTACGTACGTAAAAAA'
     },
     {
-      # std: ACGTGACGT-ACGT
-      # qry: ACGT-ACGTGACGT
+      # X preferentially aligns to dashes.
+      # std: TCTAAACCXC-GGGTTT
+      # qry: TCTAAACC-CXGGGTTT
       name: 'indels_are_merged',
-      std: 'ACGTGACGTACGT',
-      query: 'ACGTACGTGACGT',
-      expected_std: 'ACGTACGTACGT',
-      expected_query: 'ACGTACGTACGT'
+      std: 'TCTAAACXCGGGTTT',
+      query: 'TCTAAACCXGGGTTT',
+      expected_std: 'TCTAAACXCGGGTTT',
+      expected_query: 'TCTAAACCXGGGTTT'
     },
     {
-      # std: ACG--TA-CGTACGT
-      # qry: ACGCCTATCGTACGT
+      # std: AAACC--CGG-GTTT
+      # qry: AAACCTTCGGAGTTT
       name: 'insertions_are_clustered',
-      std: 'ACGTACGTACGT',
-      query: 'ACGCCTATCGTACGT',
-      expected_std: 'ACG---TACGTACGT',
-      expected_query: 'ACGCCTATCGTACGT'
+      std: 'AAACCCGGGTTT',
+      query: 'AAACCTTCGGAGTTT',
+      expected_std: 'AAACCC---GGGTTT',
+      expected_query: 'AAACCTTCGGAGTTT'
     },
     {
-      # std: ACGCCTATCGTACGT
-      # qry: ACG--TA-CGTACGT
+      # std: AAACCTTCGGAGTTT
+      # qry: AAACC--CGG-GTTT
       name: 'deletions_are_clustered',
-      std: 'ACGCCTAGCGTACGT',
-      query: 'ACGTACGTACGT',
-      expected_std: 'ACGCCTAGCGTACGT',
-      expected_query: 'ACG---TACGTACGT'
+      std: 'AAACCTTCGGAGTTT',
+      query: 'AAACCCGGGTTT',
+      expected_std: 'AAACCTTCGGAGTTT',
+      expected_query: 'AAACCC---GGGTTT'
     },
     {
-      # std: ACGT---ACGTACGT
-      # qry: ACGTCCCACGTACGT
+      # std: AAACC---CGGGTTT
+      # qry: AAACCAGACGGGTTT
       name: 'insertions_are_frame_aligned',
-      std: 'ACGTACGTACGT',
-      query: 'ACGTCCCACGTACGT',
-      expected_std: 'ACG---TACGTACGT',
-      expected_query: 'ACGTCCCACGTACGT'
+      std: 'AAACCCGGGTTT',
+      query: 'AAACCAGACGGGTTT',
+      expected_std: 'AAACCC---GGGTTT',
+      expected_query: 'AAACCAGACGGGTTT'
     },
     {
-      # std: ACGTCCCACGTACGT
-      # qry: ACGT---ACGTACGT
+      # std: AAACCAGACGGGTTT
+      # qry: AAACC---CGGGTTT
       name: 'deletions_are_frame_aligned',
-      std: 'ACGTCCCACGTACGT',
-      query: 'ACGTACGTACGT',
-      expected_std: 'ACGTCCCACGTACGT',
-      expected_query: 'ACG---TACGTACGT'
+      std: 'AAACCAGACGGGTTT',
+      query: 'AAACCCGGGTTT',
+      expected_std: 'AAACCAGACGGGTTT',
+      expected_query: 'AAACCC---GGGTTT'
     },
     {
-      # std: ACGTCCCACGTACGT
-      # qry: ACGT---ACGTACGT
+      # std: AAACC---CGGGTTT
+      # qry: AAACCAGACGGGTTT
       name: 'insertions_moved_to_common_positions',
-      std: 'ACGTCCCACGTACGT',
-      query: 'ACGTACGTACGT',
+      std: 'AAACCCGGGTTT',
+      query: 'AAACCAGACGGGTTT',
       common_insert_locations: [3],
-      expected_std: 'ACGTCCCACGTACGT',
-      expected_query: 'ACGTACGTA---CGT',
-    }
+      expected_std: 'AAACCCGGG---TTT',
+      expected_query: 'AAACCAGACGGGTTT',
+    },
+    # Nov 13, 2024: having trouble cooking up a case that aligns the way I want it to.
+    # Skipping this for now as most of this logic is tested in the no-alignment
+    # tests anyway.
+    # {
+    #   # The changes that should be made here:
+    #   # * edges trimmed
+    #   # * the insertions after position 3 and 4 should be merged
+    #   # * the deletions at 14-15 and 17 should be merged
+    #   # * the insertion after 12 should be merged with the deletion at 13
+    #   # * the insertion after 19 should be frame-aligned by setting back 1 base
+    #   # * the deletion at 24-26 should be frame-aligned by setting forward 1 base
+    #   # * the insertion after 36 should be shifted over to common insert location 11
+    #   # std: ---TCT--A-AACCC-XGGGXXTXTT---AACCCGGGTTTAAACCC---GGG---
+    #   # qry: XXXTCTXXAXAACCCX-GGG--T-TTGGGAACCCGG---TAAACCCAAAGGGAAA
+    #   name: 'typical_case',
+    #   std:      'TCTAAACCCXGGGXXTXTTAACCCGGGTTTAAACCCGGG',
+    #   query: 'XXXTCTXXAXAACCCXGGG--T-TTGGGAACCCGGTAAACCCAAAGGGAAA',
+    #   common_insert_locations: [11],
+    #   expected_std:   'TCT---AAACCCXGGGXXTX---TTAACCCGGGTTTAAA---CCCGGG',
+    #   expected_query: 'TCTXXAXAACCCXGG---GTTTGGGAACCCGGT---AAACCCAAAGGG'
+    # }
   ]
 
   ALIGNMENT_TEST_CASES.each do |test_entry|
-    define_method("test_#{test_entry[:name]}") do
+    define_method("test_with_alignment_#{test_entry[:name]}") do
       trim = test_entry[:trim].nil? ? true : false
       raise_errors = test_entry[:raise_errors].nil? ? true : false
       result = CfeGotoh.frame_align(
@@ -1043,5 +1080,4 @@ class FrameAlignTest < CfeGotohTest
       assert_equal(test_entry[:expected_query], result[1])
     end
   end
-
 end

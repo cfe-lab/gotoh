@@ -1,11 +1,41 @@
 require 'rake'
 require 'rake/testtask'
+require 'rake/file_utils'
+require 'fileutils'
 
 task :default => :test
 
 base_dir = File.expand_path(".")
 
+
+file 'lib/cfe_gotoh/cfe_gotoh.so' => ['ext/cfe_gotoh/cfe_gotoh.so'] do
+  FileUtils.copy('ext/cfe_gotoh/cfe_gotoh.so', 'lib/cfe_gotoh/cfe_gotoh.so')
+end
+
+
+file 'ext/cfe_gotoh/cfe_gotoh.so' => [
+  'ext/cfe_gotoh/Makefile',
+  'ext/cfe_gotoh/cfe_gotoh.cpp'
+] do
+  sh 'cd ext/cfe_gotoh && make'
+end
+
+
+file 'ext/cfe_gotoh/cfe_gotoh.cpp' => ['../alignment/gotoh/gotoh.cpp'] do
+  FileUtils.copy('../alignment/gotoh/gotoh.cpp', 'ext/cfe_gotoh/cfe_gotoh.cpp')
+end
+
+
+file 'ext/cfe_gotoh/Makefile' => [
+  'ext/cfe_gotoh/extconf.rb',
+  'ext/cfe_gotoh/cfe_gotoh.cpp'
+] do
+  ruby 'ext/cfe_gotoh/extconf.rb'
+end
+
+
 Rake::TestTask.new do |t|
+  t.deps = ['lib/cfe_gotoh.so']
   t.libs = [base_dir]
   t.pattern = "test/**/*_test.rb"
 end

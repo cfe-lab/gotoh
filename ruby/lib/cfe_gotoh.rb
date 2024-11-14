@@ -1,7 +1,6 @@
 #TODO:  Scoring algorithm to improve frame_align?
 
-# require 'cfe_gotoh/cfe_gotoh'
-require_relative '../ext/cfe_gotoh/cfe_gotoh'
+require_relative 'cfe_gotoh/cfe_gotoh'
 
 
 module CfeGotoh

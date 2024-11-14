@@ -9,6 +9,7 @@ base_dir = File.expand_path(".")
 
 
 file 'lib/cfe_gotoh/cfe_gotoh.so' => ['ext/cfe_gotoh/cfe_gotoh.so'] do
+  FileUtils.mkdir_p('lib/cfe_gotoh')
   FileUtils.copy('ext/cfe_gotoh/cfe_gotoh.so', 'lib/cfe_gotoh/cfe_gotoh.so')
 end
 
@@ -30,12 +31,14 @@ file 'ext/cfe_gotoh/Makefile' => [
   'ext/cfe_gotoh/extconf.rb',
   'ext/cfe_gotoh/cfe_gotoh.cpp'
 ] do
-  ruby 'ext/cfe_gotoh/extconf.rb'
+  Dir.chdir('ext/cfe_gotoh') do
+    ruby 'extconf.rb'
+  end
 end
 
 
 Rake::TestTask.new do |t|
-  t.deps = ['lib/cfe_gotoh.so']
   t.libs = [base_dir]
   t.pattern = "test/**/*_test.rb"
 end
+task :test => ['lib/cfe_gotoh/cfe_gotoh.so']

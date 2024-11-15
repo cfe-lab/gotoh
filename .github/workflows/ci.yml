@@ -1,0 +1,35 @@
+name: Automated Tests
+
+on: ["push"]
+
+jobs:
+  build:
+    runs-on: [self-hosted]
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+    - name: Setup pipenv
+      run: |
+        pip install --upgrade pip
+        python -m venv venv
+        ./venv/bin/pip install --upgrade pip
+        ./venv/bin/pip install pipenv
+    - name: Install dependencies
+      run: |
+        PIPENV_VENV_IN_PROJECT=1 ./venv/bin/pipenv sync -d
+    # - name: Dummy settings file
+    #   run: cp phylowatch/settings_default.py phylowatch/settings.py
+    - name: Static checks
+      run: |
+        ./.venv/bin/flake8 phylowatch --show-source --statistics
+        ./.venv/bin/flake8 tests --show-source --statistics
+      continue-on-error: true
+    - name: Unit tests
+      run: ./.venv/bin/pytest --cov-config=.coveragerc --cov --cov-report=xml:coverage.xml --mpl tests
+    - name: Upload coverage reports to Codecov with GitHub Action
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        root_dir: ${{ github.workspace }}
+        files: ${{ github.workspace }}/coverage.xml

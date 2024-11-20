@@ -21,7 +21,7 @@ jobs:
       with:
         imageName: ghcr.io/cfe-lab/gotoh_devcontainer
         cacheFrom: ghcr.io/cfe-lab/gotoh_devcontainer
-        runCmd: cd ${{ github.workspace }}/ruby && rake test
+        runCmd: cd /workspaces/gotoh/ruby && rake test
 
     - name: Upload coverage reports to Codecov with GitHub Action
       uses: codecov/codecov-action@v5

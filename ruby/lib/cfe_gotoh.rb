@@ -365,10 +365,10 @@ module CfeGotoh
 
   #Returns a [seq_sans_inserts, [list of inserts]]
   def self.remove_inserts(elem)
-    return remove_insertions_from_query(elem[1])
+    return remove_insertions_from_query(elem[0], elem[1])
   end
 
-  def self.remove_insertions_from_query(query)
+  def self.remove_insertions_from_query(standard, query)
     seq = '' + query
     inserts = []
     

@@ -1081,3 +1081,115 @@ class FrameAlignTest < CfeGotohTest
     end
   end
 end
+
+
+class RemoveInsertsTest < CfeGotohTest
+  REMOVE_INSERTS_TEST_CASES = [
+    {
+      name: 'no_insertions',
+      std: 'AAACCCGGGTTT',
+      query: 'AAACCCGGGTTT',
+      expected_seq: 'AAACCCGGGTTT',
+      expected_inserts: []
+    },
+    {
+      name: 'no_insertions_deletions_ignored',
+      std: 'AAACCCGGGTTT',
+      query: 'AAACCC---TTT',
+      expected_seq: 'AAACCC---TTT',
+      expected_inserts: []
+    },
+    {
+      name: 'single_base_insertion_in_middle',
+      std: 'AAACCC-GGGTTT',
+      query: 'AAACCCTGGGTTT',
+      expected_seq: 'AAACCCGGGTTT',
+      expected_inserts: [[2, 'T']]
+    },
+    {
+      name: 'single_base_insertion_in_middle_mid_codon',
+      std: 'AAACCCGG-GTTT',
+      query: 'AAACCCGGTGTTT',
+      expected_seq: 'AAACCCGGGTTT',
+      expected_inserts: [[2, 'T']]
+    },
+    {
+      name: 'single_base_insertion_at_beginning',
+      std: '-AAACCCGGGTTT',
+      query: 'TAAACCCGGGTTT',
+      expected_seq: 'AAACCCGGGTTT',
+      expected_inserts: [[0, 'T']]
+    },
+    {
+      name: 'single_base_insertion_at_end',
+      std: 'AAACCCGGGTTT-',
+      query: 'AAACCCGGGTTTA',
+      expected_seq: 'AAACCCGGGTTT',
+      expected_inserts: [[4, 'A']]
+    },
+    {
+      name: 'several_single_base_insertions',
+      std: '-AAACCC-GGGT-TT-',
+      query: 'TAAACCCAG-GTCTTA',
+      expected_seq: 'AAACCCG-GTTT',
+      expected_inserts: [[0, 'T'], [2, 'A'], [3, 'C'], [4, A]]
+    },
+    {
+      name: 'multiple_base_insertion_in_middle',
+      std: 'AAACCC--GGGTTT',
+      query: 'AAACCCCAGGGTTT',
+      expected_seq: 'AAACCCGGGTTT',
+      expected_inserts: [[2, 'CA']]
+    },
+    {
+      name: 'multiple_base_insertion_in_middle_mid_codon',
+      std: 'AAACC---CGGGTTT',
+      query: 'AAACCAGTCGGGTTT',
+      expected_seq: 'AAACCCGGGTTT',
+      expected_inserts: [[1, 'AGT']]
+    },
+    {
+      name: 'multiple_base_insertion_at_beginning',
+      std: '---AAACCCGGGTTT',
+      query: 'CGTAAACCCGGGTTT',
+      expected_seq: 'AAACCCGGGTTT',
+      expected_inserts: [[0, 'CGT']]
+    },
+    {
+      name: 'multiple_base_insertion_at_end',
+      std: 'AAACCCGGGTTT----',
+      query: 'AAACCCGGGTTTACGT',
+      expected_seq: 'AAACCCGGGTTT',
+      expected_inserts: [[4, 'ACGT']]
+    },
+    {
+      name: 'distinct_insertions_at_same_codon',
+      std: 'AAA---C-CCGGGTTT',
+      query: 'AAAGTGCTCCGGGTTT',
+      expected_seq: 'AAACCCGGGTTT',
+      expected_inserts: [[1, 'GTG'], [1, 'T']]
+    },
+    {
+      name: 'typical_case',
+      std: '---AAACC-CGGG---TT-T----',
+      query: 'CGTAAACGGCG-GACGTTATACGT',
+      expected_seq: 'AAACGCG-GTTT',
+      expected_inserts: [[0, 'CGT'], [1, 'C'], [3, 'ACG'], [3, 'A'], [4, 'ACGT']]
+    }
+  ]
+
+  REMOVE_INSERTS_TEST_CASES.each do |test_entry|
+    define_method("test_#{test_entry[:name]}") do
+      result = CfeGotoh.remove_insertions_from_query(
+        test_entry[:std],
+        test_entry[:query]
+      )
+      assert_equal(test_entry[:expected_seq], result[0])
+      assert_equal(test_entry[:expected_inserts], result[1])
+
+      wrapper_result = CfeGotoh.remove_inserts([test_entry[:std], test_entry[:query]])
+      assert_equal(test_entry[:expected_seq], wrapper_result[0])
+      assert_equal(test_entry[:expected_inserts], wrapper_result[1])
+    end
+  end
+end

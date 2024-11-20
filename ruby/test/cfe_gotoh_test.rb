@@ -1132,7 +1132,7 @@ class RemoveInsertsTest < CfeGotohTest
       std: '-AAACCC-GGGT-TT-',
       query: 'TAAACCCAG-GTCTTA',
       expected_seq: 'AAACCCG-GTTT',
-      expected_inserts: [[0, 'T'], [2, 'A'], [3, 'C'], [4, A]]
+      expected_inserts: [[0, 'T'], [2, 'A'], [3, 'C'], [4, 'A']]
     },
     {
       name: 'multiple_base_insertion_in_middle',
@@ -1174,7 +1174,7 @@ class RemoveInsertsTest < CfeGotohTest
       std: '---AAACC-CGGG---TT-T----',
       query: 'CGTAAACGGCG-GACGTTATACGT',
       expected_seq: 'AAACGCG-GTTT',
-      expected_inserts: [[0, 'CGT'], [1, 'C'], [3, 'ACG'], [3, 'A'], [4, 'ACGT']]
+      expected_inserts: [[0, 'CGT'], [1, 'G'], [3, 'ACG'], [3, 'A'], [4, 'ACGT']]
     }
   ]
 

@@ -2,6 +2,9 @@ ARG UBUNTU_VERSION=20.04
 
 FROM ubuntu:${UBUNTU_VERSION} AS base
 
+LABEL org.opencontainers.image.source=https://github.com/cfe-lab/gotoh
+LABEL org.opencontainers.image.description="Gotoh dev container for development and testing"
+
 ARG DEBIAN_FRONTEND=noninteractive
 
 ENV TZ=America/Vancouver \

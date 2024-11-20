@@ -5,11 +5,11 @@
 	
 	"build": {
 		"dockerfile": "Dockerfile"
-	}
+	},
+
+	"updateContentCommand": "cd /workspaces/gotoh/ruby && bundle install",
 	
 	"features": {
-		"ghcr.io/devcontainers/features/ruby:1": {
-			"version": "2.2"
-		}
+    	"ghcr.io/devcontainers/features/git:1": {}
 	}
 }

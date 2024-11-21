@@ -7,6 +7,12 @@ on:
 jobs:
   build_gem:
     runs-on: ubuntu-latest
+
+    env:
+      CFE_GOTOH_VERSION: ${{ github.ref_name }}
+      BUILD_PATH: ${{ github.workspace }}/ruby
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
     - name: Checkout code from repo
       uses: actions/checkout@v4
@@ -25,15 +31,19 @@ jobs:
         cacheFrom: ghcr.io/cfe-lab/gotoh_devcontainer
         runCmd: cd /workspaces/gotoh/ruby && bash build_gem.bash
         env: |
-          CFE_GOTOH_VERSION=${{ github.ref_name }}
+          CFE_GOTOH_VERSION
 
     - name: Publish gem to Github Packages
       run: |
         mkdir -p $HOME/.gem
         touch $HOME/.gem/credentials
         chmod 0600 $HOME/.gem/credentials
-        printf -- "---\n:github: Bearer ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
-        gem push --KEY github --host https://rubygems.pkg.github.com/${OWNER} *.gem
+        printf -- "---\n:github: Bearer ${GH_TOKEN}\n" > $HOME/.gem/credentials
+        gem push --KEY github --host https://rubygems.pkg.github.com/${OWNER} ${BUILD_PATH}/*.gem
       env:
-        GEM_HOST_API_KEY: ${{ secrets.GITHUB_TOKEN }}
         OWNER: ${{ github.repository_owner }}
+
+    - name: Add gem as a release asset
+      run: gh release upload $CFE_GOTOH_VERSION ${BUILD_PATH}/*.gem
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

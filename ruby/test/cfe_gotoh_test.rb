@@ -802,6 +802,12 @@ class SpliceGapsIntoSequenceTest < CfeGotohTest
       expected: 'ACTAAG---'
     },
     {
+      name: 'insert_past_end',
+      seq: 'ACTAAG',
+      gaps: [[7, 8, 9, 10]],
+      expected: 'ACTAAG----'
+    },
+    {
       name: 'insert_in_middle_retained',
       seq: 'ACT---AAG',
       gaps: [[3, 4, 5]],
@@ -847,7 +853,7 @@ class FrameAlignTest < CfeGotohTest
     end
   end
 
-  def test_bad_inserted_bases_error
+  def test_bad_deleted_bases_error
     std = 'ACGTACGTAACGT'
     query = 'ACGTACGT-ACGT'
     assert_raises RuntimeError do

@@ -15,4 +15,9 @@ Gem::Specification.new do |s|
     "David Rickett",
     "Richard Liang"
   ]
+  # Associate this gem with a GitHub repo; this allows the gems to be
+  # automatically associated with the repo when pushed to GitHub Packages.
+  s.metadata = {
+    "github_repo" => "ssh://github.com/cfe-lab/gotoh"
+  }
 end

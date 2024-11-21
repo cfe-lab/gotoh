@@ -12,9 +12,6 @@ end
 require 'minitest/autorun'
 require 'minitest/reporters'
 
-# if ENV['CI_COMMIT_REF']
-#   run_id = ENV['CI_COMMIT_REF']
-# elsif ENV["CI"]
 if ENV['CI_COMMIT_REF']
   run_id = "#{ENV['CI_COMMIT_REF']} #{ENV['CI_PIPELINE_ID']}-#{ENV['CI_COMMIT_SHA']}"
 else

@@ -12,10 +12,11 @@ end
 require 'minitest/autorun'
 require 'minitest/reporters'
 
-if ENV['CI_COMMIT_TAG']
-  run_id = ENV['CI_COMMIT_TAG']
-elsif ENV["CI"]
-  run_id = "#{ENV['CI_PIPELINE_ID']}-#{ENV['CI_COMMIT_SHORT_SHA']}"
+# if ENV['CI_COMMIT_REF']
+#   run_id = ENV['CI_COMMIT_REF']
+# elsif ENV["CI"]
+if ENV['CI_COMMIT_REF']
+  run_id = "#{ENV['CI_COMMIT_REF']} #{ENV['CI_PIPELINE_ID']}-#{ENV['CI_COMMIT_SHA']}"
 else
   run_id = "LOCALBUILD"
 end

@@ -15,8 +15,8 @@
         <h1>
             <%= title %></h1>
         <h3>
-        <small>CI Pipeline ID <%= ENV["CI_PIPELINE_ID"] %> from branch <%= ENV["CI_COMMIT_BRANCH"] %>@<%= ENV["CI_PROJECT_NAMESPACE"] %>/<%= ENV["CI_PROJECT_NAME"] %></small></br>
-        <small>Git Commit Hash <%= ENV["CI_COMMIT_SHA"] %> (<%= ENV["CI_COMMIT_SHORT_SHA"] %>)</small>
+        <small>CI Pipeline ID <%= ENV["CI_PIPELINE_ID"] %> from branch <%= ENV["CI_COMMIT_BRANCH"] %>@<%= ENV["CI_PROJECT"] %></small></br>
+        <small>Git Commit Hash <%= ENV["CI_COMMIT_SHA"] %></small>
         </h3>
         <p>
             Finished in <%= total_time_to_hms %>, <%= '%.2f tests/s' % (count / total_time) %>, <%= '%.2f assertions/s' % (assertions / total_time) %>

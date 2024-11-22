@@ -1,0 +1,15 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+	"name": "CfE Ubuntu Ruby",
+	
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+
+	"updateContentCommand": "cd /workspaces/gotoh/ruby && bundle install",
+	
+	"features": {
+    	"ghcr.io/devcontainers/features/git:1": {}
+	}
+}

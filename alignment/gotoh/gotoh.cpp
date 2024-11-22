@@ -852,11 +852,11 @@ void widen_gaps(string* seq)
        return ret;
     }
 
-
-    extern "C" void Init_alignment()
+    extern "C" void Init_cfe_gotoh()
     {
-       rb_define_global_function("align_it", (VALUE(*)(...))align_it, 4);
-       rb_define_global_function("align_it_aa", (VALUE(*)(...))align_it_aa, 4);
+        VALUE gotoh = rb_define_module("CfeGotoh"); 
+        rb_define_module_function(gotoh, "align_it", (VALUE(*)(...))align_it, 4);
+        rb_define_module_function(gotoh, "align_it_aa", (VALUE(*)(...))align_it_aa, 4);
     }
 
 #endif

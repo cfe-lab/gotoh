@@ -1,0 +1,5 @@
+Makefile
+*.so
+*.o
+extconf.h
+build/*

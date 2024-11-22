@@ -17,7 +17,7 @@ Gotoh, Osamu. "Optimal alignment between groups of sequences and its application
      CABIOS 9.3 (1993): 361-370.
 ```
 
-# Launching the Docker container
+# Launching the webserver Docker container
 
 To build the Docker container, use the included Makefile in the root directory.
 This is currently tested with `make build-base`. This builds the Docker image.
@@ -56,6 +56,10 @@ to your `requirements.txt` file or similar method.
 
 # Ruby Bindings
 
+The `/ruby` directory contains the directory structure required to build a
+gem containing Gotoh's Ruby bindings.  This gem, named `gotoh`, contains
+a module called `Gotoh` that holds the `align_it` and `align_it_aa` functions.
+
 To build Gotoh's Ruby bindings (which are called "alignment" instead of "gotoh"
 for arbitrary historical reasons), you'll need to have the following installed:
 
@@ -65,8 +69,26 @@ for arbitrary historical reasons), you'll need to have the following installed:
   [RVM](https://rvm.io/) on Linux)
 - A C++ compiler
 
-With these installed, you should be able to build the extension module with
+The "canonical" environment for testing and building this package is the 
+dev container defined in the `.devcontainer` directory.  This system is based 
+on the `cfe_ubuntu` Ruby image based on Ubuntu 20.04 (this old version is 
+required to run Ruby 2.2.2), and stripped down to only the parts necessary 
+for Ruby.  This environment is also used by the CI/CD pipeline for testing
+and building.
+
+In this environment (or another suitable environment), you should be able to 
+build the extension module using the `build_gem.bash` script.  By default this 
+will make a gem with the version number `0.1.0.pre`; set the environment variable 
+`CFE_GOTOH_VERSION` before building to assign a proper version number.
+
+## Manually building the Ruby bindings
+
+If you want to manually build the bindings, e.g. for testing/debugging/development,
+copy `/ruby/ext/gotoh/extconf.rb` to the `/alignment/gotoh/` directory and 
+change the `create_makefile('gotoh/gotoh')` line to `create_makefile('gotoh')`;
+then run
 ```
-    ruby extconf.rb
+    ruby extconf.rb  # generates a Makefile and other supporting files
     make
 ```
+which will build `gotoh.so`, which can be `require`d from Ruby.

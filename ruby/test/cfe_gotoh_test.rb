@@ -581,6 +581,33 @@ class ClusterGapsTest < CfeGotohTest
       CfeGotoh.cluster_gaps([[3, 4, 5], [9, 10, 11, 12, 13, 14], [17]], raise_errors=true)
     end
   end
+
+  CLUSTER_SIZE_TEST_CASES = [
+    {
+      name: "4_gaps_per_cluster_2_gaps_merge",
+      thresholds: [9, 12, 15],
+      gaps: [[3, 4, 5, 6], [12, 13], [17, 18], [22, 23, 24, 25]],
+      expected: [[3, 4, 5, 6, 7 ,8], [20, 21, 22, 23, 24, 25]],
+    },
+    {
+      name: "4_gaps_per_cluster_3_gaps_merge",
+      thresholds: [9, 12, 15],
+      gaps: [[3, 4], [7, 8], [12, 13], [15, 16, 17]],
+      expected: [[5, 6, 7, 8, 9, 10], [15, 16, 17]],
+    },
+    {
+      name: "4_gaps_per_cluster_4_gaps_merge",
+      thresholds: [9, 12, 15],
+      gaps: [[3, 4], [7, 8], [12, 13, 14], [16, 17]],
+      expected: [[8, 9, 10, 11, 12, 13, 14, 15, 16]],
+    }
+  ]
+
+  CLUSTER_SIZE_TEST_CASES.each do |test_entry|
+    define_method("test_#{test_entry[:name]}") do
+      assert_equal test_entry[:expected], CfeGotoh.cluster_gaps(test_entry[:gaps], true, test_entry[:thresholds])
+    end
+  end
 end
 
 

@@ -434,7 +434,7 @@ module CfeGotoh
   def self.cluster(gaps)
     result = []
     # Use middle gap as center (in case of two middle gaps use the larger one)
-    center = gaps.size % 2 == 1 ? (gaps.size - 1) / 2 : max_gap_index(gaps[(gaps.size / 2 - 1)..(gaps.size / 2)])
+    center = gaps.size % 2 == 1 ? (gaps.size - 1) / 2 : gaps.size / 2 - 1 + max_gap_index(gaps[(gaps.size / 2 - 1), 2])
     if center > 0
       pre = [0, center - 1].max
       # Extend center gap by combined size of all preceeding gaps

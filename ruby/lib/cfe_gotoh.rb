@@ -417,7 +417,7 @@ module CfeGotoh
     cluster_size = gaps.inject([], :+).size
     distance = gaps.last.first - gaps.first.last
     # Remove size of inner gaps from distance
-    distance -= gaps[1,-1].inject([], :+).size if trim_distance
+    distance -= gaps[1..-1].flatten.size if trim_distance
     return cluster_size % 3 == 0 && distance < threshold
   end
 

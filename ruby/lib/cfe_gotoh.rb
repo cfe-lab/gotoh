@@ -165,15 +165,26 @@ module CfeGotoh
     end
   end
 
+  # Merges neighbouring gaps to try and force the lenghts of all gaps to be amulitple of 3.
+  # A list of thresholds defines the maximum distance between the first and the last gap
+  # in the list, depending of the number of gaps in the cluster. 
+  #
+  # @param gaps [Array] List of gaps.
+  # @param raise_errors {Boolean] Raise error if clustering fails. Defaults to false.
+  # @param thresholds [List[Integer]] List of distance thresholds in the form:
+  #     [threshold_for_group_of_2, threshold_for_group_of_3, ...]. Defaults to [9, 12].
   def self.cluster_gaps(gaps, raise_errors=false, thresholds=[9, 12])
     # Merge adjacent gaps if they are not a codon-sized gap.
     new_gap_list = []
     gaps.each_with_index do |gap, i|
-      next if(gap.size() == 0)  # we already ate this one
-      if(gap.size() % 3 == 0)  # this gap is fine!
+      # Skip and discard already merged gaps
+      next if gap.size() == 0
+      # Skip and add already valid gaps 
+      if gap.size() % 3 == 0
         new_gap_list << gap
         next
       end
+      # Merge with neighbouring gaps if possible
       did_cluster = false
       thresholds.each.with_index(1) do |threshold, num_other_gaps|
         if (gaps.size > i + num_other_gaps) and should_cluster?(gaps[i..i+num_other_gaps], threshold)
@@ -398,8 +409,8 @@ module CfeGotoh
   # Checks whether the combined length of the gaps is a multiple of three and 
   # whether the distance between the first and the last gap is within the threshold.
   #
-  # @param gaps [Array] The list of gaps.
-  # @param threshold [Integer] The maximal distance between the first and the last gap.
+  # @param gaps [Array] List of gaps.
+  # @param threshold [Integer] Maximal distance between the first and the last gap.
   # @param trim_distance [Boolean] Disregard inner gap positions in distance calculation.
   def self.should_cluster?(gaps, threshold, trim_distance = false)
     return false if gaps.any?(&:nil?)
@@ -412,17 +423,17 @@ module CfeGotoh
 
   # Returns the index of the largest gap in the list.
   # 
-  # @param gaps [Array] The list of gaps.
+  # @param gaps [Array] List of gaps.
   def self.max_gap_index(gaps)
     return (0...gaps.size).max{ |a, b| gaps[a].size <=> gaps[b].size}
   end
 
   # Merges a list of gaps into a cluster.
   # 
-  # @param gaps [Array] The list of gaps.
+  # @param gaps [Array] List of gaps.
   def self.cluster(gaps)
     result = []
-    # Use middle gap as center (in case of two middle gas use the larger one)
+    # Use middle gap as center (in case of two middle gaps use the larger one)
     center = gaps.size % 2 == 1 ? (gaps.size - 1) / 2 : max_gap_index(gaps[(gaps.size / 2 - 1)..(gaps.size / 2)])
     if center > 0
       pre = [0, center - 1].max

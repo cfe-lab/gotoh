@@ -174,34 +174,15 @@ module CfeGotoh
         new_gap_list << gap
         next
       end
-      
-      gap2 = gaps[i + 1]  # note: these could be nil, which we test for below
-      gap3 = gaps[i + 2]
       # Can I merge with the next gap?
-      if (gap2 and (gap + gap2).size() % 3 == 0 and (gap2.first - gap.last) < 9)
-        if(gap2.size() > gap.size())
-          new_gap_list <<  ((gap2.first - gap.size()) .. gap2.first - 1).to_a() + gap2
-        else
-          new_gap_list <<  gap + ((gap.last + 1) .. (gap.last + gap2.size())).to_a()
-        end
-        gaps[i + 1] = []
+      if gaps.size > i + 1 and should_cluster?(gaps[i..i+1], 9)
+        new_gap_list << cluster(gaps[i..i+1])
+        gaps[i..i+1] = [[] * 2]
       # Can I merge with the next two gaps?
-      elsif(
-        gap2 and gap3 and
-        (gap + gap2 + gap3).size() % 3 == 0 and
-        (gap3.first - gap.last) < 12
-      )
-        # Place the gap around the middle of the three merging gaps.
-        new_gap = (
-          ((gap2.first - gap.size()) .. gap2.first - 1).to_a() + 
-          gap2 + 
-          ((gap2.last + 1) .. (gap2.last + gap3.size())).to_a()
-        )
-        new_gap_list << new_gap
-        
-        gaps[i + 1] = []
-        gaps[i + 2] = []
-      else
+      elsif gaps.size > i + 2 and should_cluster?(gaps[i..i+2], 12)
+        new_gap_list << cluster(gaps[i..i+2])
+        gaps[i..i+2] = [[] * 3]
+      else 
         # We can't merge the gaps; either raise an error or meekly proceed.
         if (raise_errors)
           raise GapMergeError
@@ -409,5 +390,51 @@ module CfeGotoh
     end
 
     return [seq.gsub('.',''), inserts]
+  end
+
+  private
+
+  # Checks whether the combined length of the gaps is a multiple of three and 
+  # whether the distance between the first and the last gap is below the threshold.
+  #
+  # @param gaps [Array] The list of gaps.
+  # @param threshold [Integer] The maximal distance between the first and the last gap.
+  # @param trim_distance [Boolean] Disregard inner gap positions in distance calculation.
+  def self.should_cluster?(gaps, threshold, trim_distance = false)
+    return false if gaps.any?(&:nil?)
+    cluster_size = gaps.inject([], :+).size
+    distance = gaps.last.first - gaps.first.last
+    # Remove size of inner gaps from distance
+    distance -= gaps[1,-1].inject([], :+).size if trim_distance
+    return cluster_size % 3 == 0 && distance < threshold
+  end
+
+  # Returns the index of the largest gap in the list.
+  # 
+  # @param gaps [Array] The list of gaps.
+  def self.max_gap_index(gaps)
+    return (0...gaps.size).max{ |a, b| gaps[a].size <=> gaps[b].size}
+  end
+
+  # Merges a list of gaps into a cluster.
+  # 
+  # @param gaps [Array] The list of gaps.
+  def self.cluster(gaps)
+    result = []
+    # Use middle gap as center (in case of two middle gas use the larger one)
+    center = gaps.size % 2 == 1 ? (gaps.size - 1) / 2 : max_gap_index(gaps[(gaps.size / 2 - 1)..(gaps.size / 2)])
+    if center > 0
+      pre = [0, center - 1].max
+      # Extend center gap by combined size of all preceeding gaps
+      result += ((gaps[center].first - gaps[0..pre].inject([], :+).size) .. (gaps[center].first - 1)).to_a()
+    end
+    # Add center gap
+    result += gaps[center]
+    if center < gaps.size - 1
+      suc = [center + 1, gaps.size - 1].min
+      # Extend center gap by combined size of all subsequent gaps
+      result += ((gaps[center].last + 1) .. (gaps[center].last + gaps[suc..gaps.size - 1].inject([], :+).size)).to_a()
+    end
+    return result
   end
 end

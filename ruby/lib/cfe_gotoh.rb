@@ -414,7 +414,7 @@ module CfeGotoh
   # @param trim_distance [Boolean] Disregard inner gap positions in distance calculation.
   def self.should_cluster?(gaps, threshold, trim_distance = false)
     return false if gaps.any?(&:nil?)
-    cluster_size = gaps.inject([], :+).size
+    cluster_size = gaps.flatten.size
     distance = gaps.last.first - gaps.first.last
     # Remove size of inner gaps from distance
     distance -= gaps[1..-1].flatten.size if trim_distance
@@ -438,14 +438,14 @@ module CfeGotoh
     if center > 0
       pre = [0, center - 1].max
       # Extend center gap by combined size of all preceeding gaps
-      result += ((gaps[center].first - gaps[0..pre].inject([], :+).size) .. (gaps[center].first - 1)).to_a()
+      result += ((gaps[center].first - gaps[0..pre].flatten.size) .. (gaps[center].first - 1)).to_a()
     end
     # Add center gap
     result += gaps[center]
     if center < gaps.size - 1
       suc = [center + 1, gaps.size - 1].min
       # Extend center gap by combined size of all subsequent gaps
-      result += ((gaps[center].last + 1) .. (gaps[center].last + gaps[suc..gaps.size - 1].inject([], :+).size)).to_a()
+      result += ((gaps[center].last + 1) .. (gaps[center].last + gaps[suc..gaps.size - 1].flatten.size)).to_a()
     end
     return result
   end

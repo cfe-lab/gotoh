@@ -165,7 +165,7 @@ module CfeGotoh
     end
   end
 
-  def self.cluster_gaps(gaps, raise_errors=false)
+  def self.cluster_gaps(gaps, raise_errors=false, thresholds=[9, 12])
     # Merge adjacent gaps if they are not a codon-sized gap.
     new_gap_list = []
     gaps.each_with_index do |gap, i|
@@ -174,17 +174,18 @@ module CfeGotoh
         new_gap_list << gap
         next
       end
-      # Can I merge with the next gap?
-      if gaps.size > i + 1 and should_cluster?(gaps[i..i+1], 9)
-        new_gap_list << cluster(gaps[i..i+1])
-        gaps[i..i+1] = [[] * 2]
-      # Can I merge with the next two gaps?
-      elsif gaps.size > i + 2 and should_cluster?(gaps[i..i+2], 12)
-        new_gap_list << cluster(gaps[i..i+2])
-        gaps[i..i+2] = [[] * 3]
-      else 
-        # We can't merge the gaps; either raise an error or meekly proceed.
-        if (raise_errors)
+      did_cluster = false
+      thresholds.each.with_index(1) do |threshold, num_other_gaps|
+        if (gaps.size > i + num_other_gaps) and should_cluster?(gaps[i..i+num_other_gaps], threshold)
+          new_gap_list << cluster(gaps[i..i+num_other_gaps])
+          gaps[i..i+num_other_gaps] = [[] * (num_other_gaps + 1)]
+          did_cluster = true
+          break
+        end
+      end
+      # We can't merge the gaps; either raise an error or meekly proceed.
+      unless did_cluster
+        if raise_errors
           raise GapMergeError
         else
           new_gap_list << gap  # FIXME this behaviour differs between insertions and deletions
@@ -395,7 +396,7 @@ module CfeGotoh
   private
 
   # Checks whether the combined length of the gaps is a multiple of three and 
-  # whether the distance between the first and the last gap is below the threshold.
+  # whether the distance between the first and the last gap is within the threshold.
   #
   # @param gaps [Array] The list of gaps.
   # @param threshold [Integer] The maximal distance between the first and the last gap.

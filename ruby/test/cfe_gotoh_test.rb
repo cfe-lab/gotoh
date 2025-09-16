@@ -381,10 +381,10 @@ class FixIncompleteEdgeCodonTest < CfeGotohTest
 end
 
 
-class MergeInsertionsAndDeletionsToFixOofSequencesTest < CfeGotohTest
+class MergeInsertionsAndDeletionsToFixOfSequencesTest < CfeGotohTest
   def test_standard_and_query_must_be_same_length
     assert_raises RuntimeError do
-      CfeGotoh.merge_insertions_and_deletions_to_fix_oof_sequences('ACT', 'ACTACT')
+      CfeGotoh.merge_insertions_and_deletions_to_fix_of_sequences('ACT', 'ACTACT')
     end
   end
 
@@ -487,7 +487,7 @@ class MergeInsertionsAndDeletionsToFixOofSequencesTest < CfeGotohTest
       std = test_entry[:std]
       query = test_entry[:query]
       side = test_entry[:side]
-      CfeGotoh.merge_insertions_and_deletions_to_fix_oof_sequences(std, query)
+      CfeGotoh.merge_insertions_and_deletions_to_fix_of_sequences(std, query)
       assert_equal test_entry[:expected_std], std
       assert_equal test_entry[:expected_query], query
     end

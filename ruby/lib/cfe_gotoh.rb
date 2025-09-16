@@ -66,7 +66,7 @@ module CfeGotoh
     return sc
   end
 
-  # For a given sequence, find all gaps (continous sections of gap_char).
+  # For a given sequence, find all gaps (continuous sections of gap_char).
   #
   # @param seq [String] The sequence, with gaps marked by gap_char.
   # @param gap_char [Char] The char used to mark gaps in seq. Defaults to '-'.
@@ -143,7 +143,7 @@ module CfeGotoh
     end
   end
 
-  def self.merge_insertions_and_deletions_to_fix_oof_sequences(
+  def self.merge_insertions_and_deletions_to_fix_of_sequences(
     standard,
     query
   )
@@ -170,9 +170,9 @@ module CfeGotoh
     end
   end
 
-  # Merges neighbouring gaps to try and force the lenghts of all gaps to be a 
-  # mulitple of 3. A list of thresholds defines the maximum distance between 
-  # the first and the last gap in the list, depending of the number of gaps in 
+  # Merges neighbouring gaps to try and force the lengths of all gaps to be a
+  # multiple of 3. A list of thresholds defines the maximum distance between
+  # the first and the last gap in the list, depending on the number of gaps in
   # the cluster. 
   #
   # @param gaps [Array<Array<Integer>>] List of gaps (a list of positions).
@@ -286,8 +286,8 @@ module CfeGotoh
   # @param common_insert_locations [Array<Integer>] List of common insert positions 
   #                                (amino acid positions; starting at base 0). Defaults to [].
   # @param trim [Boolean] Trim trailing and leading insertions/deletions. Defaults to false.
-  # @param raise_erros [Boolean] Raise errors when frame alignment fails. Defaults to false.
-  # @param prealigned [Boolean] Assume standard and query arealready aligned and just run
+  # @param raise_errors [Boolean] Raise errors when frame alignment fails. Defaults to false.
+  # @param prealigned [Boolean] Assume standard and query are already aligned and just run
   #                   corrections and QC. Defaults to false.
   def self.frame_align(
     standard,
@@ -315,7 +315,7 @@ module CfeGotoh
       fix_incomplete_edge_codon(query, :trailing)
     end
     
-    merge_insertions_and_deletions_to_fix_oof_sequences(standard, query)
+    merge_insertions_and_deletions_to_fix_of_sequences(standard, query)
 
     if standard.count('-') % 3 != 0 and raise_errors
       raise "Cannot frame align, #{standard.count('-')} inserted bases not divisible by 3"
@@ -440,7 +440,7 @@ module CfeGotoh
 
   # Find the index of the largest gap in the list.
   # 
-  # @param gaps [Array<Array<Integer>>] List of gaps, each represented by a list of positions.
+  # @param gaps [Array<Array<Integer>>] List of gaps (a list of positions).
   # @return [Integer] The index of the largest gap in the list.
   def self.max_gap_index(gaps)
     return (0...gaps.size).max{ |a, b| gaps[a].size <=> gaps[b].size}
@@ -448,7 +448,7 @@ module CfeGotoh
 
   # Merges a list of gaps into a cluster.
   # 
-  # @param gaps [Array<Array<Integer>>] List of gaps, each represented by a list of positions.
+  # @param gaps [Array<Array<Integer>>] List of gaps (a list of positions).
   # @return [Array<Integer>] Merged gap as a list of positions.
   def self.cluster(gaps)
     result = []
@@ -461,7 +461,7 @@ module CfeGotoh
     # Compress gaps to the left og the center gap
     if center > 0
       pre = [0, center - 1].max
-      # Extend center gap by combined size of all preceeding gaps
+      # Extend center gap by combined size of all preceding gaps
       result += ((gaps[center].first - gaps[0..pre].flatten.size) .. (gaps[center].first - 1)).to_a
     end
     # Add center gap

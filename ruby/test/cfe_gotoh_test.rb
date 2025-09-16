@@ -1226,3 +1226,33 @@ class RemoveInsertsTest < CfeGotohTest
     end
   end
 end
+
+class ShouldClusterTest < CfeGotohTest
+  [
+    {
+      name: "large_middle_gap_with_trim_distance",
+      gaps: [[2, 3], [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], [26, 27]], 
+      threshold: 21, 
+      trim_distance: true, 
+      expected: true
+    },
+    {
+      name: "large_middle_gap_without_trim_distance", 
+      gaps: [[2, 3], [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], [26, 27]],
+      threshold: 21,
+      trim_distance: false,
+      expected: false
+    },
+  ].each do |test_entry|
+    define_method("test_#{test_entry[:name]}") do
+      assert_equal(
+        test_entry[:expected], 
+        CfeGotoh.should_cluster?(
+          test_entry[:gaps], 
+          test_entry[:threshold], 
+          test_entry[:trim_distance]
+        )
+      )
+    end
+  end
+end

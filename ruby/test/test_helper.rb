@@ -25,4 +25,4 @@ Minitest::Reporters.use! [
     :title => "cfe_gotoh Test Report #{run_id}",
     :erb_template => File.join(File.dirname(__FILE__), "templates/index.html.erb")
   )
-]
+] unless ENV['RM_INFO']

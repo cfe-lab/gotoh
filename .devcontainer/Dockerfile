@@ -15,8 +15,10 @@ RUN apt-get -y update &&\
     apt-get -y upgrade &&\
     apt-get install -y curl gpg
 
-RUN echo "deb http://security.ubuntu.com/ubuntu/ bionic-security main" >> /etc/apt/sources.list &&\
-    echo "deb http://security.ubuntu.com/ubuntu/ bionic main" >> /etc/apt/sources.list &&\
+RUN echo "deb [arch=amd64,i368] http://security.ubuntu.com/ubuntu/ bionic-security main" >> /etc/apt/sources.list &&\
+    echo "deb [arch=amd64,i368] http://security.ubuntu.com/ubuntu/ bionic main" >> /etc/apt/sources.list &&\
+    echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic-security main" >> /etc/apt/sources.list &&\
+    echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic main" >> /etc/apt/sources.list &&\
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32 &&\
     apt update &&\
     apt install -y \

@@ -289,6 +289,10 @@ module CfeGotoh
   # @param raise_errors [Boolean] Raise errors when frame alignment fails. Defaults to false.
   # @param prealigned [Boolean] Assume standard and query are already aligned and just run
   #                   corrections and QC. Defaults to false.
+  # @param group_thresholds [Array<Integer>] List of distance thresholds for merging groups in the form:
+  #                         [threshold_for_group_of_2, threshold_for_group_of_3, ...]. 
+  #                         Defaults to [9, 12].
+  # @param trim_group_positions [Boolean] Disregard inner positions in group distance thresholds.
   def self.frame_align(
     standard,
     query,
@@ -297,7 +301,8 @@ module CfeGotoh
     common_insert_locations=nil,
     trim=false,
     raise_errors=false,
-    prealigned=false
+    prealigned=false,
+    group_thresholds=[9,12]
   )
     if common_insert_locations.nil?
       common_insert_locations = []
@@ -335,7 +340,7 @@ module CfeGotoh
       
       # Step 1: cluster the insertions.
       begin
-        new_ins_list = cluster_gaps(insert_list, raise_errors=raise_errors)
+        new_ins_list = cluster_gaps(insert_list, raise_errors=raise_errors, thresholds=group_thresholds)
       rescue GapMergeError
         raise "Cannot frame align insert" if raise_errors
       end
@@ -357,7 +362,7 @@ module CfeGotoh
       # insertions and deletions; confirm that this is the right
       # way forward.
       begin
-        new_del_list = cluster_gaps(delete_list, raise_errors=raise_errors)
+        new_del_list = cluster_gaps(delete_list, raise_errors=raise_errors, thresholds=group_thresholds)
       rescue GapMergeError
         raise "Cannot frame align deletion" if raise_errors
       end

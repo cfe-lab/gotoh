@@ -143,7 +143,7 @@ module CfeGotoh
     end
   end
 
-  def self.merge_insertions_and_deletions_to_fix_of_sequences(
+  def self.merge_inserts_and_deletions_to_fix_out_of_frame_sequences(
     standard,
     query
   )
@@ -320,7 +320,7 @@ module CfeGotoh
       fix_incomplete_edge_codon(query, :trailing)
     end
     
-    merge_insertions_and_deletions_to_fix_of_sequences(standard, query)
+    merge_inserts_and_deletions_to_fix_out_of_frame_sequences(standard, query)
 
     if standard.count('-') % 3 != 0 and raise_errors
       raise "Cannot frame align, #{standard.count('-')} inserted bases not divisible by 3"
@@ -463,7 +463,7 @@ module CfeGotoh
     else # Choose the larger of the two middle gaps as center
       center = gaps.size / 2 - 1 + max_gap_index(gaps[(gaps.size / 2 - 1), 2])
     end
-    # Compress gaps to the left og the center gap
+    # Compress gaps to the left of the center gap
     if center > 0
       pre = [0, center - 1].max
       # Extend center gap by combined size of all preceding gaps

@@ -381,10 +381,10 @@ class FixIncompleteEdgeCodonTest < CfeGotohTest
 end
 
 
-class MergeInsertionsAndDeletionsToFixOofSequencesTest < CfeGotohTest
+class MergeInsertionsAndDeletionsToFixOfSequencesTest < CfeGotohTest
   def test_standard_and_query_must_be_same_length
     assert_raises RuntimeError do
-      CfeGotoh.merge_insertions_and_deletions_to_fix_oof_sequences('ACT', 'ACTACT')
+      CfeGotoh.merge_inserts_and_deletions_to_fix_out_of_frame_sequences('ACT', 'ACTACT')
     end
   end
 
@@ -487,7 +487,7 @@ class MergeInsertionsAndDeletionsToFixOofSequencesTest < CfeGotohTest
       std = test_entry[:std]
       query = test_entry[:query]
       side = test_entry[:side]
-      CfeGotoh.merge_insertions_and_deletions_to_fix_oof_sequences(std, query)
+      CfeGotoh.merge_inserts_and_deletions_to_fix_out_of_frame_sequences(std, query)
       assert_equal test_entry[:expected_std], std
       assert_equal test_entry[:expected_query], query
     end
@@ -579,6 +579,33 @@ class ClusterGapsTest < CfeGotohTest
   def test_bad_gap_among_several_gaps_causes_error
     assert_raises CfeGotoh::GapMergeError do
       CfeGotoh.cluster_gaps([[3, 4, 5], [9, 10, 11, 12, 13, 14], [17]], raise_errors=true)
+    end
+  end
+
+  CLUSTER_SIZE_TEST_CASES = [
+    {
+      name: "4_gaps_per_cluster_2_gaps_merge",
+      thresholds: [9, 12, 15],
+      gaps: [[3, 4, 5, 6], [12, 13], [17, 18], [22, 23, 24, 25]],
+      expected: [[3, 4, 5, 6, 7 ,8], [20, 21, 22, 23, 24, 25]],
+    },
+    {
+      name: "4_gaps_per_cluster_3_gaps_merge",
+      thresholds: [9, 12, 15],
+      gaps: [[3, 4], [7, 8], [12, 13], [15, 16, 17]],
+      expected: [[5, 6, 7, 8, 9, 10], [15, 16, 17]],
+    },
+    {
+      name: "4_gaps_per_cluster_4_gaps_merge",
+      thresholds: [9, 12, 15],
+      gaps: [[3, 4], [7, 8], [12, 13, 14], [16, 17]],
+      expected: [[8, 9, 10, 11, 12, 13, 14, 15, 16]],
+    }
+  ]
+
+  CLUSTER_SIZE_TEST_CASES.each do |test_entry|
+    define_method("test_#{test_entry[:name]}") do
+      assert_equal test_entry[:expected], CfeGotoh.cluster_gaps(test_entry[:gaps], true, test_entry[:thresholds])
     end
   end
 end
@@ -1196,6 +1223,36 @@ class RemoveInsertsTest < CfeGotohTest
       wrapper_result = CfeGotoh.remove_inserts([test_entry[:std], test_entry[:query]])
       assert_equal(test_entry[:expected_seq], wrapper_result[0])
       assert_equal(test_entry[:expected_inserts], wrapper_result[1])
+    end
+  end
+end
+
+class ShouldClusterTest < CfeGotohTest
+  [
+    {
+      name: "large_middle_gap_with_trim_distance",
+      gaps: [[2, 3], [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], [26, 27]], 
+      threshold: 21, 
+      trim_distance: true, 
+      expected: true
+    },
+    {
+      name: "large_middle_gap_without_trim_distance", 
+      gaps: [[2, 3], [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], [26, 27]],
+      threshold: 21,
+      trim_distance: false,
+      expected: false
+    },
+  ].each do |test_entry|
+    define_method("test_#{test_entry[:name]}") do
+      assert_equal(
+        test_entry[:expected], 
+        CfeGotoh.should_cluster?(
+          test_entry[:gaps], 
+          test_entry[:threshold], 
+          test_entry[:trim_distance]
+        )
+      )
     end
   end
 end
